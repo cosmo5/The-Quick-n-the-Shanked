@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Player : MonoBehaviour {
 
     public delegate void PlayerAttack();
     public static event PlayerAttack onAttack;
-    private GameObject target;
+    private Target target;
 
     public float moveSpeed;
     public float maxSpeed;
@@ -15,7 +14,7 @@ public class Player : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         gm = FindObjectOfType<GameManager>();
-        target = gm.Target().gameObject;
+        target = gm.Target();
         rigi = GetComponent<Rigidbody>();
 
     }

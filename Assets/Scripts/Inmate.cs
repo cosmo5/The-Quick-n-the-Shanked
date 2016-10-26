@@ -2,16 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-public class Inmate : MonoBehaviour {
-    GameObject player;
+public class Inmate : AI {
     public float dst;
-    GameManager gm;
-    private GameObject target;
-    private List<Inmate> _Inmates = new List<Inmate>();
-    public float speed = 10;
+  //  private List<Inmate> _Inmates = new List<Inmate>();
+    
     bool playerAttack;
-    bool decision;
-    float decisionTimer = 3;
+      
 
     private int rndNum;
     public Material narkMat;
@@ -20,9 +16,11 @@ public class Inmate : MonoBehaviour {
     bool moving = false;
     Guard guardToNarcTo = null;
 
-    System.Random rnd;
 
+    public bool narcing;
     Vector3 positionToMoveTo;
+   
+    float cachTimer;
     // Use this for initialization
     void Start () {
         player = GameObject.FindGameObjectWithTag("Player");
@@ -34,21 +32,28 @@ public class Inmate : MonoBehaviour {
             willNark = true;
             GetComponent<Renderer>().material = narkMat;
         }
+        decisionTimer = Random.Range(3f, 5f);
+        cachTimer = decisionTimer;
     }
 
     public int RndNum
     {
         set { rndNum = value; }
     }
-    public GameObject Target
+    public Target Target
     {
         set { target = value; }
     }
     void OnDisable()
     {
-        Player.onAttack -= PlayerAttack;
+        Player.onAttack -= PlayerAttack;    
     }
-	void PlayerAttack()
+    protected override void Think(int x, Vector3 randomDir, Quaternion startRot)
+    {
+        base.Think(x, randomDir, startRot);
+        
+    }
+    void PlayerAttack()
     {
         playerAttack = true;
         if (target != this)
@@ -58,96 +63,31 @@ public class Inmate : MonoBehaviour {
             {
                 Vector3 dir = player.transform.position - transform.position;
 
-                RaycastHit hit;
-                if (Physics.Raycast(transform.position, dir.normalized, out hit, 15))
+                Look(dir);
+                if (playerInSight && willNark)
                 {
-                    if (hit.transform.tag == "Player")
+                    List<GameObject> temp = new List<GameObject>();
+                    foreach (Guard g in gm._guard)
                     {
-                        if (willNark)
-                        {
-                            Debug.Log("Your in my sight");
+                        temp.Add(g.gameObject);
 
-                            decision = true;
-                        }
-                       
                     }
+
+                    gm.OrderList(true, true);
+                    guardToNarcTo = gm._guard[0];
+                    moving = true;
+                    narcing = true;
                 }
             }
         }
        
     }
 
-    void Decisions(bool attack)
-    {
-        int x = Random.Range(0, 100);
-
-        if (attack)
-        {
-            if (willNark)
-            {
-                List<GameObject> temp = new List<GameObject>();
-                foreach (Guard g in gm._guard)
-                {
-                    temp.Add(g.gameObject);
-
-                }
-
-                gm.OrderList(true, true);
-                guardToNarcTo = gm._guard[0];
-                moving = true;
-            }
-        }
-        else
-        {
-            if (x >0 && x < 70)
-            {
-                //Do noThing??
-
-         
-            }
-
-            if (x > 80 && x <90)
-            {
-
-                Vector3 rndPos = new Vector3((float)rnd.NextDouble() * (gm.xMax - gm.xMin) + gm.xMin,
-                 1, (float)rnd.NextDouble() * (gm.Zmax - gm.zMin) + gm.zMin);
-                ;
-
-
-                while (gm.CheckDistanceOthers(rndPos, false))
-                {
-                    rndPos = new Vector3((float)rnd.NextDouble() * (gm.xMax - gm.xMin) + gm.xMin,
-             1, (float)rnd.NextDouble() * (gm.Zmax - gm.zMin) + gm.zMin);
-
-                }
-
-
-
-                moving = true;
-               
-                positionToMoveTo = rndPos;
-            }
-
-        }
-        
-    }
-    void Move(Vector3 dir)
-    {
-        RaycastHit hit;
-        if (!Physics.Raycast(transform.position, dir, out hit, 30))
-        {
-            GetComponent<Rigidbody>().AddForce(dir * speed * Time.deltaTime, ForceMode.Impulse);
-            ClampPos();
-        }
-    }
+   
+   
     void FixedUpdate()
     {
-        if (decision)
-        {
-            Decisions(playerAttack);
-            decision = false;  
-        }
-
+        Look(player.transform.position - transform.position);
         if (moving && !playerAttack)
         {
             
@@ -162,13 +102,18 @@ public class Inmate : MonoBehaviour {
     }
     // Update is called once per frame
     void Update () {
+
         decisionTimer -= Time.deltaTime;
         if (decisionTimer <= 0)
         {
-            decision = true;
-            decisionTimer = 3;
+            rndNumber = Random.Range(0, 100); //rnd.Next(0,100);
+            randomDir = Random.insideUnitSphere * 10;
+            randomDir.Normalize();
+            _startRot = transform.rotation;
+            decisionTimer = cachTimer;
         }
 
+        Think(rndNumber,randomDir , _startRot);
         if (positionToMoveTo != Vector3.zero)
         {
             if (transform.position == positionToMoveTo)
@@ -181,12 +126,7 @@ public class Inmate : MonoBehaviour {
         
         
 	}
-    void ClampPos()
-    {
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, gm.xMin - 1, gm.xMax + 1);
-        pos.z = Mathf.Clamp(pos.z, gm.zMin - 1, gm.Zmax + 1);
 
-        transform.position = pos;
-    }
+    
+    
 }

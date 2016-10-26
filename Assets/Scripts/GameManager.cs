@@ -8,9 +8,10 @@ using System.Linq;
 public class GameManager : MonoBehaviour {
     public GameObject player;                   /// 
     public GameObject[] guardSpots;             ///
+    public GameObject targetObj;                ///
     public Guard guard;                         ///References to objects for instantiating 
     public Inmate inmate;                       ///
-    private Inmate target;                      ///
+    public Target target;                      ///
 
     //Lists to hold instantiated objects
     public List<Inmate> _inmates = new List<Inmate>();      
@@ -36,11 +37,16 @@ public class GameManager : MonoBehaviour {
   
     int i = 0;
 
-    public Text text;
-    public Text timerTxt;
-   public Inmate Target()
+    public Text text;                       //  Text objects to show the
+    public Text timerTxt;                   //  timer and game over text
+
+    public GameObject[] mapKeyPoints;
+
+
+    //gets the target inmate
+    public Target Target()
     {
-        return target;
+        return target;  
     } 
         
 
@@ -53,10 +59,13 @@ public class GameManager : MonoBehaviour {
         rnd = new System.Random();
         SpawnGuards();
         SpawnInmates();
-        target.GetComponent<Renderer>().material = targetMat;
-        SetTarget();
-        Player.onAttack += pAttack;
+        
+
        
+       
+        Player.onAttack += pAttack;
+        SetTarget();
+       // target.GetComponent<Renderer>().material = targetMat;
     }
     void OnDisable()
     {
@@ -108,28 +117,28 @@ public class GameManager : MonoBehaviour {
    
     private void SpawnInmates()
     {
-        int x = rnd.Next(0, numInmates      );
+        int x = rnd.Next(0, numInmates);
         do
         {
             
             Vector3 spawnPos = Vector3.zero;
-            Inmate inmateIns = null;
-            
+         
             spawnPos = new Vector3((float)  rnd.NextDouble() *(xMax - xMin) + xMin, 1, (float)  rnd.NextDouble() * (Zmax - zMin) + zMin);
            
             if (!CheckDistanceOthers(spawnPos, true))
             {
                 if (!CheckDistanceOthers(spawnPos, false))
                 {
-                     inmateIns = Instantiate(inmate, spawnPos, Quaternion.identity) as Inmate;
-                    _inmates.Add(inmateIns);
-                    
+                 
                     if (i == x)
                     {
-                        target = inmateIns;
+                        GameObject objIns = Instantiate(targetObj, spawnPos, Quaternion.identity) as GameObject;
+                        target = objIns.GetComponent<Target>() ;
                     }
                     else
                     {
+                         Inmate inmateIns = Instantiate(inmate, spawnPos, Quaternion.identity) as Inmate;
+                        _inmates.Add(inmateIns);
                         inmateIns.RndNum = rnd.Next(0, 50);
                     }
                     i++;
@@ -228,7 +237,7 @@ public class GameManager : MonoBehaviour {
     {
         foreach (Inmate mate in _inmates)
         {
-            mate.Target = target.gameObject;
+            mate.Target = target;
         }
     }
 
