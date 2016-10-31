@@ -13,27 +13,26 @@ public class Inmate : AI {
     public Material narkMat;
 
     public bool willNark;
-    bool moving = false;
     Guard guardToNarcTo = null;
 
 
     public bool narcing;
     Vector3 positionToMoveTo;
-   
-    float cachTimer;
+
     // Use this for initialization
-    void Start () {
+    protected override void Start()
+    {
+        base.Start();
         player = GameObject.FindGameObjectWithTag("Player");
         rnd = new System.Random();
         Player.onAttack += PlayerAttack;
-        gm = FindObjectOfType<GameManager>();
+     
         if (rndNum > 35)
         {
             willNark = true;
             GetComponent<Renderer>().material = narkMat;
         }
-        decisionTimer = Random.Range(3f, 5f);
-        cachTimer = decisionTimer;
+       
     }
 
     public int RndNum
@@ -51,7 +50,19 @@ public class Inmate : AI {
     protected override void Think(int x, Vector3 randomDir, Quaternion startRot)
     {
         base.Think(x, randomDir, startRot);
-        
+
+        if (x > 5 && x < 20)
+        {
+            randomDir.y = 0;
+            float angle = Vector3.Angle(randomDir, transform.forward);
+
+            if (angle < 200)
+            {
+                Rotate(randomDir, true, startRot);
+            }
+
+        }
+
     }
     void PlayerAttack()
     {
@@ -101,17 +112,9 @@ public class Inmate : AI {
         }
     }
     // Update is called once per frame
-    void Update () {
+   protected override void Update () {
 
-        decisionTimer -= Time.deltaTime;
-        if (decisionTimer <= 0)
-        {
-            rndNumber = Random.Range(0, 100); //rnd.Next(0,100);
-            randomDir = Random.insideUnitSphere * 10;
-            randomDir.Normalize();
-            _startRot = transform.rotation;
-            decisionTimer = cachTimer;
-        }
+        base.Update();
 
         Think(rndNumber,randomDir , _startRot);
         if (positionToMoveTo != Vector3.zero)

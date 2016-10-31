@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class AI : MonoBehaviour {
-    protected  enum TypeOfAI
+    public  enum TypeOfAI
     {
         sketchyTarget,
         targetInGang,
@@ -20,44 +20,49 @@ public class AI : MonoBehaviour {
     public GameObject player;
     protected GameManager gm;
     private RaycastHit hit;
+    private RaycastHit moveHit;
     public float decisionTimer;
 
     protected Vector3 randomDir;
     protected int rndNumber;
-    protected TypeOfAI myType;
+    public TypeOfAI myType;
     protected Quaternion _startRot;
     public Target target;
-    void Start()
+    protected float cachTimer;
+
+    public bool moving;
+    protected virtual void Start()
     {
+        
         gm = FindObjectOfType<GameManager>();
+        player = gm.player;
+        decisionTimer = Random.Range(5, 8);
+    }
+
+  
+    protected virtual void Update()
+    {
+        decisionTimer -= Time.deltaTime;
+        if (decisionTimer <= 0)
+        {
+            rndNumber = Random.Range(0, 40); //rnd.Next(0,100);
+
+            do
+            {
+                randomDir = Random.insideUnitSphere * 10;
+            } while (Vector3.Angle(randomDir, transform.forward) < 90);
+
+            _startRot = transform.rotation;
+            decisionTimer = cachTimer;
+        }
     }
     protected virtual void Think(int x, Vector3 randomDir,  Quaternion startRot)
     {
-       
-        if (x > 30 && x < 50)
-        {
-            randomDir.y = 0;
-            float angle = Vector3.Angle(randomDir, transform.forward);
 
-            if ( angle < 200)
-            {
-                Rotate(randomDir, true, startRot);
-            }
-            
-        }
-        
     }
 
    
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.blue;
-        if (playerInSight)
-        {
-            Gizmos.DrawLine(transform.position, hit.point);
-
-        }
-    }
+   
     protected virtual void Look(Vector3 direction)
     {
         playerInSight = false;
@@ -79,6 +84,18 @@ public class AI : MonoBehaviour {
             }
         }
     }
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        if (moving)
+        {
+            Gizmos.DrawLine(transform.position, moveHit.point);
+
+        }
+
+
+
+    }
     protected virtual void Rotate(Vector3 lookDir, bool rotateBack, Quaternion startRot)
     {
         
@@ -89,24 +106,22 @@ public class AI : MonoBehaviour {
 
         if (rotateBack && transform.rotation == rot)
         {
-            print("Running");
+
             transform.rotation = Quaternion.RotateTowards(transform.rotation, startRot, rotateSpeed * Time.deltaTime);
         }
     }
-    protected virtual void Move(Vector3 dir)
+    protected virtual void Move(Vector3 pos)
     {
-        RaycastHit hit;
-        if (!Physics.Raycast(transform.position, dir, out hit, 30))
-        {
-            GetComponent<Rigidbody>().AddForce(dir * speed * Time.deltaTime, ForceMode.Impulse);
-            ClampPos();
-        }
+        Vector3 dir = (pos - transform.position).normalized;
+        GetComponent<Rigidbody>().velocity = dir * speed * Time.deltaTime;
+        ClampPos();
+
     }
     void ClampPos()
     {
         Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, gm.xMin - 1, gm.xMax + 1);
-        pos.z = Mathf.Clamp(pos.z, gm.zMin - 1, gm.Zmax + 1);
+        pos.x = Mathf.Clamp(transform.position.x, gm.xMin - 1, gm.xMax + 1);
+        pos.z = Mathf.Clamp(transform.position.z, gm.zMin - 1, gm.Zmax + 1);
 
         transform.position = pos;
     }

@@ -15,8 +15,8 @@ public class GameManager : MonoBehaviour {
 
     //Lists to hold instantiated objects
     public List<Inmate> _inmates = new List<Inmate>();      
-    public List<Guard> _guard = new List<Guard>();          
-
+    public List<Guard> _guard = new List<Guard>();
+    public int guardCount;
 
     public int numInmates;                      ///Number of inmates in the yard
   
@@ -42,7 +42,11 @@ public class GameManager : MonoBehaviour {
 
     public GameObject[] mapKeyPoints;
 
-
+    public GameObject spawnObj;
+    public GameObject[] spawnPositions;
+    public int spawnCount;
+    public int numInmatesPerGroup;
+    private int cachInmateNum;
     //gets the target inmate
     public Target Target()
     {
@@ -57,6 +61,7 @@ public class GameManager : MonoBehaviour {
         text = player.GetComponentInChildren<Text>();
         text.gameObject.SetActive(false);
         rnd = new System.Random();
+        cachInmateNum = numInmatesPerGroup;
         SpawnGuards();
         SpawnInmates();
         
@@ -84,7 +89,6 @@ public class GameManager : MonoBehaviour {
      
     }
 
-    //To do ____ Game Timer...
 
     // Update is called once per frame
     void Update() {
@@ -114,41 +118,62 @@ public class GameManager : MonoBehaviour {
     }
    
 
-   
+
     private void SpawnInmates()
     {
         int x = rnd.Next(0, numInmates);
+    
+        int y = 0;
         do
         {
-            
-            Vector3 spawnPos = Vector3.zero;
-         
-            spawnPos = new Vector3((float)  rnd.NextDouble() *(xMax - xMin) + xMin, 1, (float)  rnd.NextDouble() * (Zmax - zMin) + zMin);
-           
-            if (!CheckDistanceOthers(spawnPos, true))
+            if (i == numInmatesPerGroup)
             {
-                if (!CheckDistanceOthers(spawnPos, false))
-                {
-                 
-                    if (i == x)
-                    {
-                        GameObject objIns = Instantiate(targetObj, spawnPos, Quaternion.identity) as GameObject;
-                        target = objIns.GetComponent<Target>() ;
-                    }
-                    else
-                    {
-                         Inmate inmateIns = Instantiate(inmate, spawnPos, Quaternion.identity) as Inmate;
-                        _inmates.Add(inmateIns);
-                        inmateIns.RndNum = rnd.Next(0, 50);
-                    }
-                    i++;
-                }
+                
+                y++;
+
+                numInmatesPerGroup = numInmatesPerGroup + cachInmateNum;
             }
+            Vector3 center = spawnPositions[y].transform.position;
+          
+            Vector3 pos = RandomCircle(center, 1.5f);
+            pos.y = 0;
+            Quaternion rot = Quaternion.LookRotation(center - pos);
+
+   
+            if (!CheckDistanceOthers(pos))
+            {
+                if (i == x)
+                {
+                    GameObject objIns = Instantiate(targetObj, pos, rot) as GameObject;
+                    target = objIns.GetComponent<Target>();
+                    objIns.GetComponent<Target>().myType = AI.TypeOfAI.sketchyTarget;
+                }
+                else
+                {
+                    Inmate inmateIns = Instantiate(inmate, pos,rot) as Inmate;
+                    _inmates.Add(inmateIns);
+                    inmateIns.RndNum = rnd.Next(0, 50);
+                }
+                i++;
+            }
+         
+           
+            
         } while (i <= numInmates);
     
     }
 
- 
+
+    Vector3 RandomCircle(Vector3 center, float radius)
+    {
+        float ang = UnityEngine.Random.value * 360;
+        Vector3 pos;
+        pos.x = center.x + radius * Mathf.Sin(ang * Mathf.Deg2Rad);
+        pos.y = center.y;
+        pos.z = center.z + radius * Mathf.Cos(ang * Mathf.Deg2Rad);
+        return pos;
+    }
+
     public void OrderList(bool guards, bool p)
     {
         if (guards)
@@ -169,39 +194,33 @@ public class GameManager : MonoBehaviour {
 
      
     
-    public bool CheckDistanceOthers(Vector3 point,  bool guard)
+    public bool CheckDistanceOthers(Vector3 point)
     {
-        if (guard)
+        int i = 0;
+        foreach (Inmate currInn in _inmates)
         {
-            foreach (Guard currGuard in _guard)
+            if (i < guardCount)
             {
-
-                if (Vector3.Distance(point, currGuard.transform.position) < dstFromGuards)
+                if (Vector3.Distance(point, _guard[i].transform.position) < dstFromGuards)
                 {
+
                     return true;
                 }
-
             }
-         
-        }
-        else
-        {
-            foreach (Inmate currGuard in _inmates)
-            {
 
-                if (Vector3.Distance(point, currGuard.transform.position) < dstFromInmates)
-                {
+            if (Vector3.Distance(point, currInn.transform.position) < dstFromInmates)
+            {
                    
-                    return true;
-                }
-                else if (Vector3.Distance(player.transform.position, currGuard.transform.position) < dstFromInmates)
-                {
-                    
-                    return true;
-                }
-
+                return true;
             }
-            Debug.Log("false");
+            else if (Vector3.Distance(player.transform.position, currInn.transform.position) < dstFromInmates)
+            {
+                    
+                return true;
+            }
+
+            
+
         }
         
         return false;

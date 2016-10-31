@@ -10,7 +10,8 @@ public class Guard : AI {
   
  
     // Use this for initialization
-    void Start () {
+   protected override void Start () {
+        base.Start();
         player = GameObject.FindGameObjectWithTag("Player");
         Player.onAttack += PlayerAttack;
         decisionTimer = Random.Range(8, 12);
@@ -18,7 +19,9 @@ public class Guard : AI {
 	}
 
     // Update is called once per frame
-    void Update () {
+    protected override void Update()
+    {
+        base.Update();
         if (playerCaught)
         {
             Move(player.transform.position - transform.position);
@@ -32,15 +35,7 @@ public class Guard : AI {
             Think(rndNumber, randomDir, _startRot); 
         }
 
-        decisionTimer -= Time.deltaTime;
-        if (decisionTimer <= 0)
-        {
-            rndNumber = rnd.Next(0,100);
-            randomDir = Random.insideUnitSphere * 10;
-            randomDir.Normalize();
-            _startRot = transform.rotation;
-            decisionTimer = cacheTimer;
-        }
+     
 
       
 	}
