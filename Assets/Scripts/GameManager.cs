@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         gameTimer -= Time.deltaTime;
-        timerTxt.text = "You have : " + gameTimer.ToString("F0") +  "Seconds \n Remaning to kill the target";
+        timerTxt.text = "You have : " + gameTimer.ToString("F0") +  " Seconds Remaning to kill the target";
         if (gameTimer <=0)
         {
             EndGame(false);
@@ -199,6 +199,16 @@ public class GameManager : MonoBehaviour {
         int i = 0;
         foreach (Inmate currInn in _inmates)
         {
+            if (Vector3.Distance(point, currInn.transform.position) < dstFromInmates)
+            {
+
+                return true;
+            }
+            else if (Vector3.Distance(player.transform.position, currInn.transform.position) < dstFromInmates)
+            {
+
+                return true;
+            }
             if (i < guardCount)
             {
                 if (Vector3.Distance(point, _guard[i].transform.position) < dstFromGuards)
@@ -208,16 +218,7 @@ public class GameManager : MonoBehaviour {
                 }
             }
 
-            if (Vector3.Distance(point, currInn.transform.position) < dstFromInmates)
-            {
-                   
-                return true;
-            }
-            else if (Vector3.Distance(player.transform.position, currInn.transform.position) < dstFromInmates)
-            {
-                    
-                return true;
-            }
+            
 
             
 

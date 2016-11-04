@@ -37,6 +37,7 @@ public class AI : MonoBehaviour {
         gm = FindObjectOfType<GameManager>();
         player = gm.player;
         decisionTimer = Random.Range(5, 8);
+        cachTimer = decisionTimer;
     }
 
   
@@ -107,7 +108,7 @@ public class AI : MonoBehaviour {
         if (rotateBack && transform.rotation == rot)
         {
 
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, startRot, rotateSpeed * Time.deltaTime);
+          //  transform.rotation = Quaternion.RotateTowards(transform.rotation, startRot, rotateSpeed * Time.deltaTime);
         }
     }
     protected virtual void Move(Vector3 pos)

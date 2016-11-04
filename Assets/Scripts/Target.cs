@@ -12,12 +12,14 @@ public class Target : AI {
     private Vector3 movePos;
     private Vector3 startPos;
     public bool targetAtPos;
+    private bool moveBackToStart;
     // Use this for initialization
      protected override void Start() {
         base.Start();
+        startPos = transform.position;
         keyAreas = GameObject.FindGameObjectsWithTag("KeyMap");
         targetAtPos = false;
-        decisionTimer = 0.1f;
+
         cachTimer = decisionTimer;
        // guards.AddRange(gm._guard);
     }
@@ -25,9 +27,8 @@ public class Target : AI {
     {
         if (moving)
         {
-            Rotate(moveDir, false, transform.rotation  );
+            Rotate(moveDir, false, transform.rotation );
             Move(movePos);
-          
         }
      
     }
@@ -40,9 +41,9 @@ public class Target : AI {
             Think(rndNumber, randomDir, _startRot);
 
         }
-        else
+        else if (moving)
         {
-            if (transform.position == movePos)
+            if (Vector3.Distance(transform.position, movePos) < 0.5f)
             {
                 //Do Something
                 targetAtPos = true;
@@ -62,7 +63,7 @@ public class Target : AI {
 
     private void KeyAreas(int x )
     {
-        startPos = transform.position;
+        
         Vector3 posToWalkTo = Vector3.zero;
         switch (x)
         {
@@ -95,7 +96,13 @@ public class Target : AI {
         moving = true;
         movePos = startPos;
         moveDir = startPos - transform.position;
+        moveBackToStart = true;
     }
+    private void SelectGuard()
+    {
+
+    }
+
     protected override void Think(int x, Vector3 randomDir, Quaternion startRot)
     {
         base.Think(x, randomDir, startRot);
@@ -141,16 +148,15 @@ public class Target : AI {
                 {
                     //Walk To Guard
                     Debug.Log("Target Walking to Guard");
+                    SelectGuard();
                 }
-                if (x > 35)
+                if (x > 35 && x < 40)
                 {
                     //Walk To Key Area
                     Debug.Log("Target Walking to key area");
                     KeyAreas(x);
                 }
 
-
-                
 
 
                 break;

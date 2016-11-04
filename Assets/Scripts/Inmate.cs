@@ -13,7 +13,7 @@ public class Inmate : AI {
     public Material narkMat;
 
     public bool willNark;
-    Guard guardToNarcTo = null;
+    public Guard guardToNarcTo = null;
 
 
     public bool narcing;
@@ -53,7 +53,7 @@ public class Inmate : AI {
 
         if (x > 5 && x < 20)
         {
-            randomDir.y = 0;
+       
             float angle = Vector3.Angle(randomDir, transform.forward);
 
             if (angle < 200)
@@ -86,7 +86,7 @@ public class Inmate : AI {
 
                     gm.OrderList(true, true);
                     guardToNarcTo = gm._guard[0];
-                    moving = true;
+                     moving = true;
                     narcing = true;
                 }
             }
@@ -102,7 +102,7 @@ public class Inmate : AI {
         if (moving && !playerAttack)
         {
             
-            Move((positionToMoveTo - transform.position).normalized);
+            Move(positionToMoveTo );
         }
         if (guardToNarcTo != null)
         {

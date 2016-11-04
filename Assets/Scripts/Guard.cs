@@ -24,7 +24,7 @@ public class Guard : AI {
         base.Update();
         if (playerCaught)
         {
-            Move(player.transform.position - transform.position);
+            Move(player.transform.position );
         }
         if (Vector3.Distance(transform.position, player.transform.position) < 5)
         {
@@ -73,7 +73,11 @@ public class Guard : AI {
         {
             if (c.GetComponent<Inmate>().narcing)
             {
-                Snitched();
+                if (Vector3.Distance(transform.position, c.transform.position)< 1)
+                {
+                    Snitched();
+                }
+
             }
         }
     }
