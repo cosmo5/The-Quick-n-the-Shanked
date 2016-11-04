@@ -74,7 +74,7 @@ public class Inmate : AI {
             {
                 Vector3 dir = player.transform.position - transform.position;
 
-                Look(dir);
+                Look(dir, moving);
                 if (playerInSight && willNark)
                 {
                     List<GameObject> temp = new List<GameObject>();
@@ -84,7 +84,7 @@ public class Inmate : AI {
 
                     }
 
-                    gm.OrderList(true, true);
+                    gm.OrderList(true);
                     guardToNarcTo = gm._guard[0];
                      moving = true;
                     narcing = true;
@@ -98,16 +98,16 @@ public class Inmate : AI {
    
     void FixedUpdate()
     {
-        Look(player.transform.position - transform.position);
+        Look(player.transform.position - transform.position, moving);
         if (moving && !playerAttack)
         {
             
-            Move(positionToMoveTo );
+            Move(positionToMoveTo - transform.position );
         }
         if (guardToNarcTo != null)
         {
             Vector3 dir = guardToNarcTo.transform.position - transform.position;
-            dir.Normalize();
+            
             Move(dir);
         }
     }

@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour {
     System.Random rnd;                          //System random variable used for deciding if inmate is a 'Narc' and for target inmate
     int numPPLGroup = 6;    
 
-  
+    
     int i = 0;
 
     public Text text;                       //  Text objects to show the
@@ -102,10 +102,7 @@ public class GameManager : MonoBehaviour {
         {
             dstFromGuards = 2;
         }
-        if (dstFromInmates > 1)
-        {
-            dstFromInmates = 1;
-        }
+     
 
         if (endGame)
         {
@@ -114,7 +111,7 @@ public class GameManager : MonoBehaviour {
                 SceneManager.LoadScene(0);
             }
         }
-        OrderList(true, true);
+        OrderList(true);
     }
    
 
@@ -122,7 +119,7 @@ public class GameManager : MonoBehaviour {
     private void SpawnInmates()
     {
         int x = rnd.Next(0, numInmates);
-    
+        int z = 0;
         int y = 0;
         do
         {
@@ -130,43 +127,39 @@ public class GameManager : MonoBehaviour {
             {
                 
                 y++;
-
+                z = 0;
                 numInmatesPerGroup = numInmatesPerGroup + cachInmateNum;
             }
             Vector3 center = spawnPositions[y].transform.position;
           
-            Vector3 pos = RandomCircle(center, 1.5f);
+            Vector3 pos = RandomCircle(center, 1.5f, z  );
             pos.y = 0;
             Quaternion rot = Quaternion.LookRotation(center - pos);
-
-   
-            if (!CheckDistanceOthers(pos))
+            if (i == x)
             {
-                if (i == x)
-                {
-                    GameObject objIns = Instantiate(targetObj, pos, rot) as GameObject;
-                    target = objIns.GetComponent<Target>();
-                    objIns.GetComponent<Target>().myType = AI.TypeOfAI.sketchyTarget;
-                }
-                else
-                {
-                    Inmate inmateIns = Instantiate(inmate, pos,rot) as Inmate;
-                    _inmates.Add(inmateIns);
-                    inmateIns.RndNum = rnd.Next(0, 50);
-                }
-                i++;
+                GameObject objIns = Instantiate(targetObj, pos, rot) as GameObject;
+                target = objIns.GetComponent<Target>();
+                objIns.GetComponent<Target>().myType = AI.TypeOfAI.sketchyTarget;
             }
-         
-           
-            
+            else
+            {
+                Inmate inmateIns = Instantiate(inmate, pos, rot) as Inmate;
+                _inmates.Add(inmateIns);
+                inmateIns.RndNum = rnd.Next(0, 50);
+            }
+            i++;
+            z++;
+          
+
+
         } while (i <= numInmates);
     
     }
 
 
-    Vector3 RandomCircle(Vector3 center, float radius)
+    Vector3 RandomCircle(Vector3 center, float radius , int x)
     {
-        float ang = UnityEngine.Random.value * 360;
+        float ang =x * rnd.Next(62,(int)dstFromInmates);
         Vector3 pos;
         pos.x = center.x + radius * Mathf.Sin(ang * Mathf.Deg2Rad);
         pos.y = center.y;
@@ -174,7 +167,7 @@ public class GameManager : MonoBehaviour {
         return pos;
     }
 
-    public void OrderList(bool guards, bool p)
+    public void OrderList(bool guards)
     {
         if (guards)
         {
@@ -188,40 +181,31 @@ public class GameManager : MonoBehaviour {
 
         }
 
-
-
     }
 
      
     
     public bool CheckDistanceOthers(Vector3 point)
     {
-        int i = 0;
-        foreach (Inmate currInn in _inmates)
+        if (_inmates.Count > 1)
         {
-            if (Vector3.Distance(point, currInn.transform.position) < dstFromInmates)
-            {
+            _inmates = _inmates.OrderBy(x => Vector3.Distance(point, x.transform.position)).ToList();
 
-                return true;
-            }
-            else if (Vector3.Distance(player.transform.position, currInn.transform.position) < dstFromInmates)
-            {
+        }
 
-                return true;
-            }
-            if (i < guardCount)
+        for (int x = 0; x < numInmatesPerGroup; x++)
+        {
+            if (_inmates.Count > x)
             {
-                if (Vector3.Distance(point, _guard[i].transform.position) < dstFromGuards)
+                if (Vector3.Distance(point, _inmates[x].transform.position) < dstFromInmates)
                 {
-
                     return true;
                 }
+              
+
             }
-
-            
-
-            
-
+          
+         
         }
         
         return false;

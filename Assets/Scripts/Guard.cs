@@ -24,7 +24,7 @@ public class Guard : AI {
         base.Update();
         if (playerCaught)
         {
-            Move(player.transform.position );
+            Move(player.transform.position - transform.position);
         }
         if (Vector3.Distance(transform.position, player.transform.position) < 5)
         {
@@ -67,7 +67,7 @@ public class Guard : AI {
             playerInSight = false;
             Vector3 direction = c.transform.position  - transform.position  ;
 
-            Look(direction);
+            Look(direction, moving);
         }
         if (c.tag == "Inmate")
         {

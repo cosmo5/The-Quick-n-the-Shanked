@@ -10,33 +10,35 @@ public class AI : MonoBehaviour {
         towerGuard,
         GuardDog
     };
-
+   
     public float speed;
-    public float rotateWait;
     public float rotateSpeed;
     public float fovAngle;
-    protected System.Random rnd = new System.Random();
+    protected System.Random rnd = new System.Random()  ;
     protected bool playerInSight;
     public GameObject player;
     protected GameManager gm;
     private RaycastHit hit;
     private RaycastHit moveHit;
     public float decisionTimer;
-
+    protected Vector3 moveDir;
+    protected Vector3 movePos;
+    protected Vector3 startPos;
     protected Vector3 randomDir;
     protected int rndNumber;
     public TypeOfAI myType;
     protected Quaternion _startRot;
     public Target target;
     protected float cachTimer;
-
+    public bool ObsticleInWay;
     public bool moving;
+    public Vector3 offset;
     protected virtual void Start()
     {
         
         gm = FindObjectOfType<GameManager>();
         player = gm.player;
-        decisionTimer = Random.Range(5, 8);
+       // decisionTimer = Random.Range(5, 8);
         cachTimer = decisionTimer;
     }
 
@@ -64,12 +66,12 @@ public class AI : MonoBehaviour {
 
    
    
-    protected virtual void Look(Vector3 direction)
+    protected virtual void Look(Vector3 direction, bool moving)
     {
         playerInSight = false;
         float angle = Vector3.Angle(direction, transform.forward);
 
-        if (angle < fovAngle * 0.5f)
+        if (angle < fovAngle * 0.5f && !moving)
         {
             if (Physics.Raycast(transform.GetChild(0).position, direction.normalized, out hit, 30))
             {
@@ -84,16 +86,42 @@ public class AI : MonoBehaviour {
 
             }
         }
+
+        if (moving)
+        {
+            ObsticleInWay = false;
+           
+            for (int i = 0; i < 3; i++)
+            {
+                RaycastHit hit;
+                Vector3 pos = ((transform.GetChild(0).transform.position - transform.right * 0.2f) + transform.right * i * 0.2f);
+                Vector3 dir = movePos - pos; 
+                if (Physics.Raycast(pos, dir.normalized, out hit, 5))
+                {
+                    if (hit.transform.tag == "Inmate" || hit.transform.tag == "Guard")
+                    {
+                        float dstToTarget = Vector3.Distance(transform.position, movePos);
+                        if (hit.distance < dstToTarget)
+                        {
+                            if (hit.distance < 1)
+                            {
+                                ObsticleInWay = true;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+                Debug.DrawRay((transform.GetChild(0).transform.position - transform.right * 0.2f) + transform.right * i * 0.2f, dir.normalized * 15, Color.blue);
+            }
+
+        }
     }
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        if (moving)
-        {
-            Gizmos.DrawLine(transform.position, moveHit.point);
-
-        }
-
+     
 
 
     }
@@ -103,18 +131,18 @@ public class AI : MonoBehaviour {
         Quaternion rot = Quaternion.LookRotation(lookDir.normalized);
         rot.x = 0;
         rot.z = 0;
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, rot, rotateSpeed * Time.deltaTime);
-
+        transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotateSpeed * Time.deltaTime);
+        
         if (rotateBack && transform.rotation == rot)
         {
 
           //  transform.rotation = Quaternion.RotateTowards(transform.rotation, startRot, rotateSpeed * Time.deltaTime);
         }
     }
-    protected virtual void Move(Vector3 pos)
+    protected virtual void Move(Vector3 dir)
     {
-        Vector3 dir = (pos - transform.position).normalized;
-        GetComponent<Rigidbody>().velocity = dir * speed * Time.deltaTime;
+      
+        GetComponent<Rigidbody>().velocity = dir.normalized * speed * Time.deltaTime;
         ClampPos();
 
     }

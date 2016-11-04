@@ -8,10 +8,9 @@ public class Target : AI {
     public GameObject[] keyAreas;
     public List<Guard> guards = new List<Guard>();
     public GameObject something;
-    private Vector3 moveDir;
-    private Vector3 movePos;
-    private Vector3 startPos;
+    private bool targetAtStart;
     public bool targetAtPos;
+    private Vector3 obsticleMovePos;
     private bool moveBackToStart;
     // Use this for initialization
      protected override void Start() {
@@ -19,16 +18,29 @@ public class Target : AI {
         startPos = transform.position;
         keyAreas = GameObject.FindGameObjectsWithTag("KeyMap");
         targetAtPos = false;
-
+        targetAtStart = true;
         cachTimer = decisionTimer;
        // guards.AddRange(gm._guard);
     }
     void FixedUpdate()
     {
+        Look(moveDir, moving);
         if (moving)
         {
-            Rotate(moveDir, false, transform.rotation );
-            Move(movePos);
+            Rotate(moveDir, false, transform.rotation);
+            
+            if (!ObsticleInWay)
+            {
+                moveDir = movePos - transform.position;
+                Move(moveDir);
+            }   
+            else
+            {
+                moveDir = Quaternion.AngleAxis(30 , Vector3.up) * moveDir;
+
+            }
+           
+         
         }
      
     }
@@ -43,13 +55,20 @@ public class Target : AI {
         }
         else if (moving)
         {
-            if (Vector3.Distance(transform.position, movePos) < 0.5f)
+            if (Vector3.Distance(transform.position, movePos) < 0.2f && !targetAtPos )
             {
                 //Do Something
                 targetAtPos = true;
                 moving = false;
             }
-          
+            if (Vector3.Distance(transform.position, startPos) < 0.2 && moveBackToStart)
+            {
+                //Do Something
+                targetAtPos = false;
+                targetAtStart = true;
+                moving = false;
+            }
+
         }
 
      
@@ -90,6 +109,7 @@ public class Target : AI {
         moveDir = posToWalkTo - transform.position;
         movePos = posToWalkTo;
         moving = true;
+        targetAtStart = false;
     }
     private void WalkToStart()
     {
@@ -97,6 +117,7 @@ public class Target : AI {
         movePos = startPos;
         moveDir = startPos - transform.position;
         moveBackToStart = true;
+        targetAtPos = false; 
     }
     private void SelectGuard()
     {
@@ -112,6 +133,16 @@ public class Target : AI {
         {
             case TypeOfAI.sketchyTarget:
 
+                if (Vector3.Distance(transform.position, player.transform.position) < 2)
+                {
+                    //Freak Out
+                    LockOnToPlayer();
+                }
+                if (Vector3.Distance(transform.position, player.transform.position) > 5)
+                {
+                    stayLockedToPlayer = false;
+                }
+
 
                 if (x > 10 && x < 20)
                 {
@@ -125,23 +156,14 @@ public class Target : AI {
 
                 }
 
-                if ( x > 20 && x < 30 || stayLockedToPlayer)
+                if ( x > 20 && x < 30)
                 {
                     if (targetAtPos)
                     {
                         //WalkToStartPoint
                         WalkToStart();
                     }
-                    if (Vector3.Distance(transform.position, player.transform.position) < 2)
-                    {
-                        //Freak Out
-                        LockOnToPlayer();
-                    }
-                    if (Vector3.Distance(transform.position, player.transform.position) > 5)
-                    {
-                        stayLockedToPlayer = false;
-                    }
-
+                    
                 }
 
                 if (x > 30 && x < 35)
