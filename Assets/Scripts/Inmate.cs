@@ -102,13 +102,11 @@ public class Inmate : AI {
         if (moving && !playerAttack)
         {
             
-            Move(positionToMoveTo - transform.position );
+            RequestPath(transform.position, positionToMoveTo);
         }
         if (guardToNarcTo != null)
         {
-            Vector3 dir = guardToNarcTo.transform.position - transform.position;
-            
-            Move(dir);
+            RequestPath(transform.position, guardToNarcTo.transform.position);
         }
     }
     // Update is called once per frame

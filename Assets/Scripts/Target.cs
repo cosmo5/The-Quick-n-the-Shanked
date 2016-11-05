@@ -17,6 +17,7 @@ public class Target : AI {
         base.Start();
         startPos = transform.position;
         keyAreas = GameObject.FindGameObjectsWithTag("KeyMap");
+        guards = gm._guard;
         targetAtPos = false;
         targetAtStart = true;
         cachTimer = decisionTimer;
@@ -24,23 +25,10 @@ public class Target : AI {
     }
     void FixedUpdate()
     {
-        Look(moveDir, moving);
+       // Look(moveDir, moving);
         if (moving)
         {
-            Rotate(moveDir, false, transform.rotation);
-            
-            if (!ObsticleInWay)
-            {
-                moveDir = movePos - transform.position;
-                Move(moveDir);
-            }   
-            else
-            {
-                moveDir = Quaternion.AngleAxis(30 , Vector3.up) * moveDir;
-
-            }
-           
-         
+            RequestPath(transform.position, movePos);
         }
      
     }
@@ -55,6 +43,7 @@ public class Target : AI {
         }
         else if (moving)
         {
+          
             if (Vector3.Distance(transform.position, movePos) < 0.2f && !targetAtPos )
             {
                 //Do Something
@@ -113,15 +102,19 @@ public class Target : AI {
     }
     private void WalkToStart()
     {
-        moving = true;
+       
         movePos = startPos;
         moveDir = startPos - transform.position;
         moveBackToStart = true;
-        targetAtPos = false; 
+        targetAtPos = false;
+        moving = true;
     }
     private void SelectGuard()
     {
-
+        int x = Random.Range(0, guards.Count);
+        Vector3 guardpos = guards[x].transform.position;
+        movePos = guardpos;
+        moving = true;
     }
 
     protected override void Think(int x, Vector3 randomDir, Quaternion startRot)

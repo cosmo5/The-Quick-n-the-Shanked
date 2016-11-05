@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 public class AI : MonoBehaviour {
     public  enum TypeOfAI
     {
@@ -33,9 +33,24 @@ public class AI : MonoBehaviour {
     public bool ObsticleInWay;
     public bool moving;
     public Vector3 offset;
+
+    public bool pathFound;
+    protected Vector3[] path;
+    public int targetIndex;
+    protected Grid grid;
+    private Node myNode;
+    private List<Node> neightbourNodes = new List<Node>();
     protected virtual void Start()
     {
-        
+        grid = FindObjectOfType<Grid>();
+        myNode = grid.NodeFromWorldPoint(transform.position);
+        myNode.movementPenalty = 50;
+        foreach (Node node in neightbourNodes)
+        {
+            node.movementPenalty = 50   ;
+
+        }
+        neightbourNodes = grid.GetNeighbours(myNode);
         gm = FindObjectOfType<GameManager>();
         player = gm.player;
        // decisionTimer = Random.Range(5, 8);
@@ -45,6 +60,13 @@ public class AI : MonoBehaviour {
   
     protected virtual void Update()
     {
+        if (moving)
+        {
+            //Disable the node i am standing on
+            
+
+        }
+
         decisionTimer -= Time.deltaTime;
         if (decisionTimer <= 0)
         {
@@ -58,14 +80,36 @@ public class AI : MonoBehaviour {
             _startRot = transform.rotation;
             decisionTimer = cachTimer;
         }
+
+        if (pathFound)
+        {
+            Move();
+
+        }
     }
     protected virtual void Think(int x, Vector3 randomDir,  Quaternion startRot)
     {
 
     }
 
-   
-   
+    public void RequestPath(Vector3 currPos, Vector3 targetPos)
+    {
+    
+       if(!pathFound)
+        {
+            PathRequestManager.RequestPath(currPos, targetPos, OnPathFound);
+            targetIndex = 0;    
+        }
+           
+    }
+    public void OnPathFound(Vector3[] newPath, bool pathSuccessful)
+    {
+        if (pathSuccessful)
+        {
+            path = newPath;
+            pathFound = true;
+        }
+    }
     protected virtual void Look(Vector3 direction, bool moving)
     {
         playerInSight = false;
@@ -87,43 +131,58 @@ public class AI : MonoBehaviour {
             }
         }
 
-        if (moving)
-        {
-            ObsticleInWay = false;
+        //if (moving)
+        //{
+        //    ObsticleInWay = false;
            
-            for (int i = 0; i < 3; i++)
-            {
-                RaycastHit hit;
-                Vector3 pos = ((transform.GetChild(0).transform.position - transform.right * 0.2f) + transform.right * i * 0.2f);
-                Vector3 dir = movePos - pos; 
-                if (Physics.Raycast(pos, dir.normalized, out hit, 5))
-                {
-                    if (hit.transform.tag == "Inmate" || hit.transform.tag == "Guard")
-                    {
-                        float dstToTarget = Vector3.Distance(transform.position, movePos);
-                        if (hit.distance < dstToTarget)
-                        {
-                            if (hit.distance < 1)
-                            {
-                                ObsticleInWay = true;
+        //    for (int i = 0; i < 3; i++)
+        //    {
+        //        RaycastHit hit;
+        //        Vector3 pos = ((transform.GetChild(0).transform.position - transform.right * 0.2f) + transform.right * i * 0.2f);
+        //        Vector3 dir = movePos - pos; 
+        //        if (Physics.Raycast(pos,direction.normalized, out hit, 5))
+        //        {
+        //            if (hit.transform.tag == "Inmate" || hit.transform.tag == "Guard")
+        //            {
+        //                float dstToTarget = Vector3.Distance(transform.position, movePos);
+        //                if (hit.distance < dstToTarget)
+        //                {
+        //                    if (hit.distance < 1)
+        //                    {
+        //                        ObsticleInWay = true;
 
-                            }
+        //                    }
 
-                        }
+        //                }
 
-                    }
+        //            }
 
-                }
-                Debug.DrawRay((transform.GetChild(0).transform.position - transform.right * 0.2f) + transform.right * i * 0.2f, dir.normalized * 15, Color.blue);
-            }
+        //        }
+        //        Debug.DrawRay(pos, direction.normalized * 15, Color.blue);
+        //    }
 
-        }
+        //}
     }
     void OnDrawGizmos()
     {
      
+        if (path != null && pathFound)
+        {
+            for (int i = targetIndex; i < path.Length; i++)
+            {
+                Gizmos.color = Color.black;
+                Gizmos.DrawCube(path[i], Vector3.one * 0.5f);
 
-
+                if (i == targetIndex)
+                {
+                    Gizmos.DrawLine(transform.position, path[i]);
+                }
+                else
+                {
+                    Gizmos.DrawLine(path[i - 1], path[i]);
+                }
+            }
+        }
     }
     protected virtual void Rotate(Vector3 lookDir, bool rotateBack, Quaternion startRot)
     {
@@ -131,7 +190,7 @@ public class AI : MonoBehaviour {
         Quaternion rot = Quaternion.LookRotation(lookDir.normalized);
         rot.x = 0;
         rot.z = 0;
-        transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotateSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.SlerpUnclamped(transform.rotation, rot, rotateSpeed * Time.deltaTime);
         
         if (rotateBack && transform.rotation == rot)
         {
@@ -139,10 +198,29 @@ public class AI : MonoBehaviour {
           //  transform.rotation = Quaternion.RotateTowards(transform.rotation, startRot, rotateSpeed * Time.deltaTime);
         }
     }
-    protected virtual void Move(Vector3 dir)
+    protected virtual void Move()
     {
-      
-        GetComponent<Rigidbody>().velocity = dir.normalized * speed * Time.deltaTime;
+        Vector3 currentWaypoint = Vector3.zero;
+        if (targetIndex >= path.Length)
+        {
+            moving = false;
+            pathFound = false;
+        }
+        else
+        {
+            currentWaypoint = path[targetIndex];
+            if (Vector3.Distance(transform.position, currentWaypoint) < 0.2f)
+            {
+                targetIndex++;
+            }
+//            currentWaypoint = path[targetIndex];
+
+        }
+     
+        Vector3 dir = currentWaypoint - transform.position;
+   
+        GetComponent<Rigidbody>().AddForce( dir.normalized * speed * Time.deltaTime, ForceMode.Impulse);
+        Rotate(dir, false, transform.rotation);
         ClampPos();
 
     }

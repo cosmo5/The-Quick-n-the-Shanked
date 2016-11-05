@@ -47,6 +47,8 @@ public class GameManager : MonoBehaviour {
     public int spawnCount;
     public int numInmatesPerGroup;
     private int cachInmateNum;
+
+    public LayerMask inmateMask;
     //gets the target inmate
     public Target Target()
     {

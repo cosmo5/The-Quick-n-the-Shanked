@@ -24,7 +24,8 @@ public class Guard : AI {
         base.Update();
         if (playerCaught)
         {
-            Move(player.transform.position - transform.position);
+            // Move(player.transform.position - transform.position);
+            RequestPath(transform.position, player.transform.position);
         }
         if (Vector3.Distance(transform.position, player.transform.position) < 5)
         {
