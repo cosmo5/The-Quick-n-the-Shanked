@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour {
     public int spawnCount;
     public int numInmatesPerGroup;
     private int cachInmateNum;
-
+    public float nodeRadiusMultiplyer;
     public LayerMask inmateMask;
     //gets the target inmate
     public Target Target()
@@ -134,7 +134,7 @@ public class GameManager : MonoBehaviour {
             }
             Vector3 center = spawnPositions[y].transform.position;
           
-            Vector3 pos = RandomCircle(center, 1.5f, z  );
+            Vector3 pos = RandomCircle(center, 1, z  );
             pos.y = 0;
             Quaternion rot = Quaternion.LookRotation(center - pos);
             if (i == x)
@@ -161,7 +161,7 @@ public class GameManager : MonoBehaviour {
 
     Vector3 RandomCircle(Vector3 center, float radius , int x)
     {
-        float ang =x * rnd.Next(62,(int)dstFromInmates);
+        float ang = x * rnd.Next(62,(int)dstFromInmates);
         Vector3 pos;
         pos.x = center.x + radius * Mathf.Sin(ang * Mathf.Deg2Rad);
         pos.y = center.y;

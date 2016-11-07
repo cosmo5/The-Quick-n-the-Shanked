@@ -67,29 +67,27 @@ public class Inmate : AI {
     void PlayerAttack()
     {
         playerAttack = true;
-        if (target != this)
+       
+        if (Vector3.Distance(transform.position, player.transform.position) < dst)
         {
-           
-            if (Vector3.Distance(transform.position, player.transform.position) < dst)
+            Vector3 dir = player.transform.position - transform.position;
+
+            Look(dir, moving);
+            if (playerInSight && willNark)
             {
-                Vector3 dir = player.transform.position - transform.position;
-
-                Look(dir, moving);
-                if (playerInSight && willNark)
+                List<GameObject> temp = new List<GameObject>();
+                foreach (Guard g in gm._guard)
                 {
-                    List<GameObject> temp = new List<GameObject>();
-                    foreach (Guard g in gm._guard)
-                    {
-                        temp.Add(g.gameObject);
+                    temp.Add(g.gameObject);
 
-                    }
-
-                    gm.OrderList(true);
-                    guardToNarcTo = gm._guard[0];
-                     moving = true;
-                    narcing = true;
                 }
+
+                gm.OrderList(true);
+                guardToNarcTo = gm._guard[0];
+                moving = true;
+                narcing = true;
             }
+            
         }
        
     }

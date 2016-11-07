@@ -6,9 +6,10 @@ using System;
 public class Pathfinding : MonoBehaviour {
     Grid grid;
     PathRequestManager requestManager;
-
+    GameManager gm;
     void Awake()
     {
+        gm = FindObjectOfType<GameManager>();
         requestManager = GetComponent<PathRequestManager>();
         grid = GetComponent<Grid>();
     }
@@ -50,13 +51,25 @@ public class Pathfinding : MonoBehaviour {
 
                 foreach (Node neighbour in grid.GetNeighbours(currentNode))
                 {
-                    if (!Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * 1.3f, FindObjectOfType<GameManager>().inmateMask))
+                    
+                    if (Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * gm.nodeRadiusMultiplyer, gm.inmateMask))
                     {
-                        neighbour.movementPenalty = -100;
+                        neighbour.movementPenalty = 50;
                     }
                     else
                     {
-                        neighbour.movementPenalty = 0;
+                        foreach (Node neighbour2 in grid.GetNeighbours(neighbour))
+                        {
+                            if (neighbour2.movementPenalty > 25)
+                            {
+                                neighbour.movementPenalty = 25;
+                            }
+                            else
+                            {
+                                 neighbour.movementPenalty = 0;
+                            }
+                        }
+                       
                     }
                     if (!neighbour.walkable || closedSet.Contains(neighbour))
                     {
@@ -85,6 +98,7 @@ public class Pathfinding : MonoBehaviour {
                         {
                             openSet.UpdateItem(neighbour);
                         }
+                        neighbour.movementPenalty = 0;
                     }
                 }
             }

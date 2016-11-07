@@ -136,40 +136,43 @@ public class Target : AI {
                     stayLockedToPlayer = false;
                 }
 
-
-                if (x > 10 && x < 20)
+                if (!stayLockedToPlayer)
                 {
-                    randomDir.y = 0;
-                    float angle = Vector3.Angle(randomDir, transform.forward);
-
-                    if (angle < 200)
+                    if (x > 10 && x < 20)
                     {
-                        Rotate(randomDir, true, startRot);
+                        randomDir.y = 0;
+                        float angle = Vector3.Angle(randomDir, transform.forward);
+
+                        if (angle < 200)
+                        {
+                            Rotate(randomDir, true, startRot);
+                        }
+
                     }
 
-                }
-
-                if ( x > 20 && x < 30)
-                {
-                    if (targetAtPos)
+                    if (x > 20 && x < 30)
                     {
-                        //WalkToStartPoint
-                        WalkToStart();
-                    }
-                    
-                }
+                        if (targetAtPos)
+                        {
+                            //WalkToStartPoint
+                            WalkToStart();
+                        }
 
-                if (x > 30 && x < 35)
-                {
-                    //Walk To Guard
-                    Debug.Log("Target Walking to Guard");
-                    SelectGuard();
-                }
-                if (x > 35 && x < 40)
-                {
-                    //Walk To Key Area
-                    Debug.Log("Target Walking to key area");
-                    KeyAreas(x);
+                    }
+
+                    if (x > 30 && x < 35)
+                    {
+                        //Walk To Guard
+                        Debug.Log("Target Walking to Guard");
+                        SelectGuard();
+                    }
+                    if (x > 35 && x < 40)
+                    {
+                        //Walk To Key Area
+                        Debug.Log("Target Walking to key area");
+                        KeyAreas(x);
+                    }
+
                 }
 
 

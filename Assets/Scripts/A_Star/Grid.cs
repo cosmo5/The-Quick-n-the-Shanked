@@ -33,7 +33,8 @@ public class Grid : MonoBehaviour {
                 foreach (Node n in grid)
                 {
                     Gizmos.color = (n.walkable) ? Color.white : Color.red;
-                    Gizmos.DrawCube(n.worldPos, Vector3.one * (nodeDiameter - 0.1f));
+              
+                Gizmos.DrawCube(n.worldPos, Vector3.one * (nodeDiameter - 0.1f));
                 }
             }
     }
@@ -97,7 +98,7 @@ public class Grid : MonoBehaviour {
                 //this gives each point that a node will occupy in our world
                 Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
 
-                bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius * 100, unwalkableMask));
+                bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius , unwalkableMask));
                 int movementPenalty = 0;
                 //Can raycast to find layer, and set the cost higher
                

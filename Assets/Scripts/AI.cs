@@ -218,8 +218,7 @@ public class AI : MonoBehaviour {
         }
      
         Vector3 dir = currentWaypoint - transform.position;
-   
-        GetComponent<Rigidbody>().AddForce( dir.normalized * speed * Time.deltaTime, ForceMode.Impulse);
+        GetComponent<Rigidbody>().velocity =  dir.normalized * speed * Time.deltaTime;
         Rotate(dir, false, transform.rotation);
         ClampPos();
 

@@ -77,6 +77,7 @@ public class Guard : AI {
                 if (Vector3.Distance(transform.position, c.transform.position)< 1)
                 {
                     Snitched();
+                    c.GetComponent<Inmate>().guardToNarcTo = null;
                 }
 
             }
