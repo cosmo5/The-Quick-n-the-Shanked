@@ -47,9 +47,9 @@ public class Inmate : AI {
     {
         Player.onAttack -= PlayerAttack;    
     }
-    protected override void Think(int x, Vector3 randomDir, Quaternion startRot)
+    protected override void Think(int x, Vector3 randomDir, Quaternion startRot, bool moving)
     {
-        base.Think(x, randomDir, startRot);
+        base.Think(x, randomDir, startRot, moving);
 
         if (x > 5 && x < 20)
         {
@@ -82,7 +82,7 @@ public class Inmate : AI {
 
                 }
 
-                gm.OrderList(true);
+                gm.OrderList(true, transform.position);
                 guardToNarcTo = gm._guard[0];
                 moving = true;
                 narcing = true;
@@ -112,7 +112,7 @@ public class Inmate : AI {
 
         base.Update();
 
-        Think(rndNumber,randomDir , _startRot);
+        Think(rndNumber,randomDir , _startRot, moving);
         if (positionToMoveTo != Vector3.zero)
         {
             if (transform.position == positionToMoveTo)

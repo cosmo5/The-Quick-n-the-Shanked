@@ -2,6 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 public class Target : AI {
+    [Range(0,100)]  
+    public float laziness;
+    [Range(0, 100)]
+    public float happiness;
+    [Range(0, 100)]
+    public float scared;
+    private float originalScared;
+    public float scaredMultiplyer;
+
     private bool gang;
     private GameObject gangPos;
     public bool stayLockedToPlayer;
@@ -12,6 +21,12 @@ public class Target : AI {
     public bool targetAtPos;
     private Vector3 obsticleMovePos;
     private bool moveBackToStart;
+    float startdst = 0;
+    private Vector3 prevPos;
+    private bool doOnce;
+    private bool tooScry;
+
+    Guard guardToRunTo;
     // Use this for initialization
      protected override void Start() {
         base.Start();
@@ -21,44 +36,65 @@ public class Target : AI {
         targetAtPos = false;
         targetAtStart = true;
         cachTimer = decisionTimer;
+        if (myType == TypeOfAI.sketchyTarget)
+            scared = 30;
+
+        originalScared = scared;
        // guards.AddRange(gm._guard);
     }
     void FixedUpdate()
     {
        // Look(moveDir, moving);
-        if (moving)
+        if (moving )
         {
             RequestPath(transform.position, movePos);
         }
      
     }
-
+    
+    private void RunToGuard()
+    {
+        gm.OrderList(true, transform.position);
+        movePos = gm._guard[0].transform.position;
+        guardToRunTo = gm._guard[0];
+        tooScry = true;
+        stopMovement = false;
+        moving = true;
+    }
     // Update is called once per frame
     protected override void Update () {
         base.Update();
-        if (!moving)
+        if (scared >= 99)
         {
-            Think(rndNumber, randomDir, _startRot);
+            //run to guard
+            RunToGuard();
+
 
         }
-        else if (moving)
+        Think(rndNumber, randomDir, _startRot, moving);
+        
+        
+
+        if (Vector3.Distance(transform.position, movePos) < 0.5f && !targetAtPos )
         {
-          
-            if (Vector3.Distance(transform.position, movePos) < 0.2f && !targetAtPos )
+            //Do Something
+            targetAtPos = true;
+            moving = false;
+            if (tooScry)
             {
-                //Do Something
-                targetAtPos = true;
-                moving = false;
-            }
-            if (Vector3.Distance(transform.position, startPos) < 0.2 && moveBackToStart)
-            {
-                //Do Something
-                targetAtPos = false;
-                targetAtStart = true;
-                moving = false;
+               guardToRunTo.SendMessage("TargetScared");
             }
 
         }
+        if (Vector3.Distance(transform.position, startPos) < 0.5f && moveBackToStart)
+        {
+            //Do Something
+            targetAtPos = false;
+            targetAtStart = true;
+            moving = false;
+        }
+
+        
 
      
     }
@@ -66,6 +102,10 @@ public class Target : AI {
     {
         Debug.Log("Player Near Target, Target Sketchy");
         Rotate(player.transform.position - transform.position, false, transform.rotation);
+        scared +=( (startdst - Vector2.Distance(transform.position, player.transform.position) ) * scaredMultiplyer);
+        scared = Mathf.Clamp(scared, 0, 100);
+
+        stopMovement = true;
         stayLockedToPlayer = true;
     }
 
@@ -102,7 +142,7 @@ public class Target : AI {
     }
     private void WalkToStart()
     {
-       
+        
         movePos = startPos;
         moveDir = startPos - transform.position;
         moveBackToStart = true;
@@ -115,66 +155,93 @@ public class Target : AI {
         Vector3 guardpos = guards[x].transform.position;
         movePos = guardpos;
         moving = true;
+      
     }
 
-    protected override void Think(int x, Vector3 randomDir, Quaternion startRot)
+    protected override void Think (int x, Vector3 randomDir, Quaternion startRot, bool moving)
     {
-        base.Think(x, randomDir, startRot);
-       
+
+        base.Think(x, randomDir, startRot, moving);
         switch (myType)
 
         {
             case TypeOfAI.sketchyTarget:
-
-                if (Vector3.Distance(transform.position, player.transform.position) < 2)
+                //Everything the target can do when stationary, 
+                //this includes finding places to walk to, randomly rotating, sketching out whenn player is close
+                if (Vector3.Distance(transform.position, player.transform.position) < 3 || stayLockedToPlayer)
                 {
+                    if (doOnce)
+                    {
+                        startdst = Vector2.Distance(transform.position, player.transform.position);
+
+                        doOnce = false;
+                    }   
                     //Freak Out
-                    LockOnToPlayer();
+                    if(!tooScry)
+                         LockOnToPlayer();
+                    
                 }
-                if (Vector3.Distance(transform.position, player.transform.position) > 5)
+                if (Vector3.Distance(transform.position, player.transform.position) > 5 && !tooScry)
                 {
+                    scared = Mathf.Lerp(scared, originalScared, Time.deltaTime);
                     stayLockedToPlayer = false;
+                    stopMovement = false;
+                    doOnce = true;
+                    startdst = 0;
                 }
 
-                if (!stayLockedToPlayer)
+                #region moving
+                if (!moving)
                 {
-                    if (x > 10 && x < 20)
+                   
+                    if (!stayLockedToPlayer)
                     {
-                        randomDir.y = 0;
-                        float angle = Vector3.Angle(randomDir, transform.forward);
-
-                        if (angle < 200)
+                        if (x > 10 && x < 20)
                         {
-                            Rotate(randomDir, true, startRot);
+                            randomDir.y = 0;
+                            float angle = Vector3.Angle(randomDir, transform.forward);
+
+                            if (angle < 200)
+                            {
+                                //Dice roll Greater than 4 rotate back
+                                Rotate(randomDir, DiceRoll() > 4 ? true : false, startRot);
+                            }
+
+                        }
+
+                        if (x > 20 && x < 30)
+                        {
+                            if (targetAtPos)
+                            {
+                                //WalkToStartPoint
+                                WalkToStart();
+                            }
+
+                        }
+
+                        if (x > 30 && x < 35)
+                        {
+                            //Walk To Guard
+                            Debug.Log("Target Walking to Guard");
+                            SelectGuard();
+                        }
+                        if (x > 35 && x < 40)
+                        {
+                            //Walk To Key Area
+                            Debug.Log("Target Walking to key area");
+                            KeyAreas(x);
                         }
 
                     }
 
-                    if (x > 20 && x < 30)
-                    {
-                        if (targetAtPos)
-                        {
-                            //WalkToStartPoint
-                            WalkToStart();
-                        }
 
-                    }
-
-                    if (x > 30 && x < 35)
-                    {
-                        //Walk To Guard
-                        Debug.Log("Target Walking to Guard");
-                        SelectGuard();
-                    }
-                    if (x > 35 && x < 40)
-                    {
-                        //Walk To Key Area
-                        Debug.Log("Target Walking to key area");
-                        KeyAreas(x);
-                    }
 
                 }
+                #endregion
+                if (moving)
+                {
 
+                }
 
 
                 break;

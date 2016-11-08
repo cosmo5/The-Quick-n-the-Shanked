@@ -43,7 +43,7 @@ public class Guard : AI {
     public void Snitched()
     {
         playerCaught = true;
-        FindObjectOfType<GameManager>().EndGame(false);
+        //FindObjectOfType<GameManager>().EndGame(false);
         FindObjectOfType<GameManager>().playerCaught = true;
     }
     void OnDisable()
@@ -59,6 +59,10 @@ public class Guard : AI {
             FindObjectOfType<GameManager>().playerCaught = true;
             FindObjectOfType<GameManager>().EndGame(false);
         }
+    }
+    void TargetScared()
+    {
+        Snitched();
     }
     void OnTriggerStay(Collider c)
     {

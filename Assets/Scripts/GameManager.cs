@@ -113,7 +113,7 @@ public class GameManager : MonoBehaviour {
                 SceneManager.LoadScene(0);
             }
         }
-        OrderList(true);
+        OrderList(true, player.transform.position);
     }
    
 
@@ -169,17 +169,17 @@ public class GameManager : MonoBehaviour {
         return pos;
     }
 
-    public void OrderList(bool guards)
+    public void OrderList(bool guards, Vector3 pos)
     {
         if (guards)
         {
-         _guard = _guard.OrderBy(x => Vector3.Distance(player.transform.position, x.transform.position)).ToList();
+         _guard = _guard.OrderBy(x => Vector3.Distance(pos, x.transform.position)).ToList();
             
            
         }
         else
         {
-           _inmates = _inmates.OrderBy(x => Vector3.Distance(transform.position, x.transform.position)).ToList();
+           _inmates = _inmates.OrderBy(x => Vector3.Distance(pos, x.transform.position)).ToList();
 
         }
 
