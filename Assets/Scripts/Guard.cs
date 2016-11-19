@@ -7,7 +7,6 @@ public class Guard : AI {
     private bool playerCaught;
     private float cacheTimer;
 
-  
  
     // Use this for initialization
    protected override void Start () {
@@ -24,16 +23,15 @@ public class Guard : AI {
         base.Update();
         if (playerCaught)
         {
-            // Move(player.transform.position - transform.position);
             RequestPath(transform.position, player.transform.position);
         }
-        if (Vector3.Distance(transform.position, player.transform.position) < 5)
+        if (Vector3.Distance(transform.position, player.transform.position) < 2)
         {
             Rotate(player.transform.position - transform.position, false, transform.rotation);
         }
         else
         {
-            Think(rndNumber, randomDir, _startRot); 
+            Think(rndNumber, randomDir, _startRot, false); 
         }
 
      

@@ -43,7 +43,6 @@ public class Pathfinding : MonoBehaviour {
                 if (currentNode == targetNode)
                 {
                     sw.Stop();
-             //       print("path found " + sw.ElapsedMilliseconds + "Ms");
                     pathSuccess = true;
                 
                     break;
@@ -52,7 +51,7 @@ public class Pathfinding : MonoBehaviour {
                 foreach (Node neighbour in grid.GetNeighbours(currentNode))
                 {
                     
-                    if (Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * gm.nodeRadiusMultiplyer, gm.inmateMask))
+                    if (Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * gm.nodeRadiusMultiplyer, gm.inmateMask) && !gm.yardOver)
                     {
                         neighbour.movementPenalty = 50;
                     }

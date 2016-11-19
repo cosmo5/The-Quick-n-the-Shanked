@@ -6,6 +6,17 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Linq;
 public class GameManager : MonoBehaviour {
+
+    public enum TypeOfDay
+    {
+        Hot,
+        Warm,
+        JustRight,
+        Cold,
+        Rainey,
+        Storming,
+    };
+    public TypeOfDay typeOfDay = TypeOfDay.JustRight;
     public GameObject player;                   /// 
     public GameObject[] guardSpots;             ///
     public GameObject targetObj;                ///
@@ -13,6 +24,7 @@ public class GameManager : MonoBehaviour {
     public Inmate inmate;                       ///
     public Target target;                      ///
 
+    public float[] yardHours = new float[2];
     //Lists to hold instantiated objects
     public List<Inmate> _inmates = new List<Inmate>();      
     public List<Guard> _guard = new List<Guard>();
@@ -23,8 +35,7 @@ public class GameManager : MonoBehaviour {
     public Material targetMat;                  // Material for target
   
     public float xMin, xMax, zMin, Zmax;        //Bounds of the screen
-   
-    
+
     public float dstFromGuards;                 //Min distance from guards the inmates can spawn
     public float gameTimer = 120f;              //How long you have till the game ends
     public float dstFromInmates;                //min Distace from other inmates
@@ -37,6 +48,12 @@ public class GameManager : MonoBehaviour {
     
     int i = 0;
 
+    public float startHour;
+    public float worldTimeHours;
+    public float worldTimeMins;
+    private float startTime;
+    public Text worldTimer;                     // The World Timer
+    public float timeSpeedMultiplyer;
     public Text text;                       //  Text objects to show the
     public Text timerTxt;                   //  timer and game over text
 
@@ -49,6 +66,17 @@ public class GameManager : MonoBehaviour {
     private int cachInmateNum;
     public float nodeRadiusMultiplyer;
     public LayerMask inmateMask;
+
+    public bool yardOver;
+    public delegate void YardTimeOver();
+    public static event YardTimeOver yardTimeOver;
+
+
+    public delegate void NewHour();
+    public static event NewHour newHour;
+    public bool drawGizmosPath;
+    public float dayMultiplyer;
+    private bool dayVarsSet;
     //gets the target inmate
     public Target Target()
     {
@@ -66,8 +94,8 @@ public class GameManager : MonoBehaviour {
         cachInmateNum = numInmatesPerGroup;
         SpawnGuards();
         SpawnInmates();
-        
-
+        startTime = Time.time;
+        worldTimeHours = startHour;
        
        
         Player.onAttack += pAttack;
@@ -95,6 +123,31 @@ public class GameManager : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         gameTimer -= Time.deltaTime;
+        worldTimeMins = (Time.time - startTime) * timeSpeedMultiplyer;
+        if (worldTimeMins > 60)
+        {
+            if (newHour != null)
+            {
+                newHour();
+            }
+            worldTimeHours += 1;
+            if (worldTimeHours >= yardHours[1])
+            {
+                if (yardTimeOver !=null)
+                {
+                    yardTimeOver();
+                    yardOver = true;
+                }
+            }
+            startTime = Time.time;
+            worldTimeMins = 0;
+        }
+        if(worldTimeMins > 10)
+          worldTimer.text = "Time: " +(    worldTimeHours ).ToString("F0") + ":" + worldTimeMins.ToString("F0");
+        else
+            worldTimer.text = "Time: " + (worldTimeHours).ToString("F0") + ":" + "0" + worldTimeMins.ToString("F0");
+
+
         timerTxt.text = "You have : " + gameTimer.ToString("F0") +  " Seconds Remaning to kill the target";
         if (gameTimer <=0)
         {
@@ -114,6 +167,34 @@ public class GameManager : MonoBehaviour {
             }
         }
         OrderList(true, player.transform.position);
+        if (!dayVarsSet)
+        {
+            switch (typeOfDay)
+            {
+                case TypeOfDay.Hot:
+                    dayMultiplyer = 3;
+                    break;
+                case TypeOfDay.Warm:
+                    dayMultiplyer = 2;
+                    break;
+                case TypeOfDay.JustRight:
+                    dayMultiplyer = 1;
+                    break;
+                case TypeOfDay.Cold:
+                    dayMultiplyer = 0.8f;
+                    break;
+                case TypeOfDay.Rainey:
+                    dayMultiplyer = 0.5f;
+                    break;
+                case TypeOfDay.Storming:
+                    dayMultiplyer = 0.3f;
+                    break;
+                default:
+                    break;
+            }
+            dayVarsSet = true;  
+        }
+       
     }
    
 
@@ -148,6 +229,7 @@ public class GameManager : MonoBehaviour {
                 Inmate inmateIns = Instantiate(inmate, pos, rot) as Inmate;
                 _inmates.Add(inmateIns);
                 inmateIns.RndNum = rnd.Next(0, 50);
+                
             }
             i++;
             z++;

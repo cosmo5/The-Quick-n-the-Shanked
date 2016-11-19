@@ -17,7 +17,6 @@ public class Inmate : AI {
 
 
     public bool narcing;
-    Vector3 positionToMoveTo;
 
     // Use this for initialization
     protected override void Start()
@@ -26,7 +25,7 @@ public class Inmate : AI {
         player = GameObject.FindGameObjectWithTag("Player");
         rnd = new System.Random();
         Player.onAttack += PlayerAttack;
-     
+        
         if (rndNum > 35)
         {
             willNark = true;
@@ -50,18 +49,7 @@ public class Inmate : AI {
     protected override void Think(int x, Vector3 randomDir, Quaternion startRot, bool moving)
     {
         base.Think(x, randomDir, startRot, moving);
-
-        if (x > 5 && x < 20)
-        {
-       
-            float angle = Vector3.Angle(randomDir, transform.forward);
-
-            if (angle < 200)
-            {
-                Rotate(randomDir, true, startRot);
-            }
-
-        }
+        
 
     }
     void PlayerAttack()
@@ -100,7 +88,7 @@ public class Inmate : AI {
         if (moving && !playerAttack)
         {
             
-            RequestPath(transform.position, positionToMoveTo);
+            RequestPath(transform.position, movePos);
         }
         if (guardToNarcTo != null)
         {
@@ -113,12 +101,13 @@ public class Inmate : AI {
         base.Update();
 
         Think(rndNumber,randomDir , _startRot, moving);
-        if (positionToMoveTo != Vector3.zero)
+        if (movePos != Vector3.zero)
         {
-            if (transform.position == positionToMoveTo)
+            if (transform.position == movePos)
             {
+                
                 moving = false;
-                positionToMoveTo = Vector3.zero;
+                movePos = Vector3.zero;
             }
         }
       

@@ -8,13 +8,13 @@ public class Target : AI {
     public float happiness;
     [Range(0, 100)]
     public float scared;
+
     private float originalScared;
     public float scaredMultiplyer;
 
     private bool gang;
     private GameObject gangPos;
     public bool stayLockedToPlayer;
-    public GameObject[] keyAreas;
     public List<Guard> guards = new List<Guard>();
     public GameObject something;
     private bool targetAtStart;
@@ -29,18 +29,21 @@ public class Target : AI {
     Guard guardToRunTo;
     // Use this for initialization
      protected override void Start() {
+        //Call Base AI Start Function
         base.Start();
         startPos = transform.position;
-        keyAreas = GameObject.FindGameObjectsWithTag("KeyMap");
+        //Populate the guard List
         guards = gm._guard;
+
         targetAtPos = false;
         targetAtStart = true;
         cachTimer = decisionTimer;
+
+        
         if (myType == TypeOfAI.sketchyTarget)
             scared = 30;
 
         originalScared = scared;
-       // guards.AddRange(gm._guard);
     }
     void FixedUpdate()
     {
@@ -49,9 +52,8 @@ public class Target : AI {
         {
             RequestPath(transform.position, movePos);
         }
-     
     }
-    
+
     private void RunToGuard()
     {
         gm.OrderList(true, transform.position);
@@ -60,22 +62,27 @@ public class Target : AI {
         tooScry = true;
         stopMovement = false;
         moving = true;
+        targetAtPos = false;
     }
     // Update is called once per frame
     protected override void Update () {
         base.Update();
-        if (scared >= 99)
+        if (scared >= 99 && tooScry == false)
         {
             //run to guard
+            if (pathFound)
+            {
+                ClearPath();
+            }
             RunToGuard();
-
-
         }
-        Think(rndNumber, randomDir, _startRot, moving);
+
+        if(!gm.yardOver)
+            Think(rndNumber, randomDir, _startRot, moving);
         
         
 
-        if (Vector3.Distance(transform.position, movePos) < 0.5f && !targetAtPos )
+        if (Vector3.Distance(transform.position, movePos) < 1 && !targetAtPos )
         {
             //Do Something
             targetAtPos = true;
@@ -102,10 +109,15 @@ public class Target : AI {
     {
         Debug.Log("Player Near Target, Target Sketchy");
         Rotate(player.transform.position - transform.position, false, transform.rotation);
-        scared +=( (startdst - Vector2.Distance(transform.position, player.transform.position) ) * scaredMultiplyer);
-        scared = Mathf.Clamp(scared, 0, 100);
+        if(moving)
+          scared +=( (startdst - Vector2.Distance(transform.position, player.transform.position) ) * (scaredMultiplyer / 3));
+        else
+            scared += ((startdst - Vector2.Distance(transform.position, player.transform.position)) * (scaredMultiplyer ));
 
-        stopMovement = true;
+        scared = Mathf.Clamp(scared, 0, 100);
+        speed -= ((startdst - Vector2.Distance(transform.position, player.transform.position)));
+        speed = Mathf.Clamp(speed, 40, 75);
+        //stopMovement = true;
         stayLockedToPlayer = true;
     }
 
@@ -168,7 +180,7 @@ public class Target : AI {
             case TypeOfAI.sketchyTarget:
                 //Everything the target can do when stationary, 
                 //this includes finding places to walk to, randomly rotating, sketching out whenn player is close
-                if (Vector3.Distance(transform.position, player.transform.position) < 3 || stayLockedToPlayer)
+                if (Vector3.Distance(transform.position, player.transform.position) < 1.5f || stayLockedToPlayer)
                 {
                     if (doOnce)
                     {
@@ -181,7 +193,7 @@ public class Target : AI {
                          LockOnToPlayer();
                     
                 }
-                if (Vector3.Distance(transform.position, player.transform.position) > 5 && !tooScry)
+                if (Vector3.Distance(transform.position, player.transform.position) > 2.5f && !tooScry)
                 {
                     scared = Mathf.Lerp(scared, originalScared, Time.deltaTime);
                     stayLockedToPlayer = false;
@@ -204,7 +216,7 @@ public class Target : AI {
                             if (angle < 200)
                             {
                                 //Dice roll Greater than 4 rotate back
-                                Rotate(randomDir, DiceRoll() > 4 ? true : false, startRot);
+                                Rotate(randomDir, DiceRoll() , startRot);
                             }
 
                         }
