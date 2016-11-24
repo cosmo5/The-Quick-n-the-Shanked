@@ -70,7 +70,7 @@ public class GameManager : MonoBehaviour {
     public bool yardOver;
     public delegate void YardTimeOver();
     public static event YardTimeOver yardTimeOver;
-
+    public List<Water> waterTaps = new List<Water>();
 
     public delegate void NewHour();
     public static event NewHour newHour;

@@ -52,7 +52,7 @@ public class Pathfinding : MonoBehaviour {
                 {
                     
                     if (Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * gm.nodeRadiusMultiplyer, gm.inmateMask) && !gm.yardOver)
-                    {
+                    { 
                         neighbour.movementPenalty = 50;
                     }
                     else

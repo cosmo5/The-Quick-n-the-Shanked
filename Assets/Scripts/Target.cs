@@ -50,7 +50,7 @@ public class Target : AI {
        // Look(moveDir, moving);
         if (moving )
         {
-            RequestPath(transform.position, movePos);
+            RequestPath(transform.position, movePos, false);
         }
     }
 
@@ -216,7 +216,7 @@ public class Target : AI {
                             if (angle < 200)
                             {
                                 //Dice roll Greater than 4 rotate back
-                                Rotate(randomDir, DiceRoll() , startRot);
+                                Rotate(randomDir, DiceRoll(UnityEngine.Random.Range(0, 6)), startRot);
                             }
 
                         }

@@ -33,7 +33,10 @@ public class Grid : MonoBehaviour {
                 foreach (Node n in grid)
                 {
                     Gizmos.color = (n.walkable) ? Color.white : Color.red;
-              
+                if (n.movementPenalty > 30)
+                {
+                    Gizmos.color = Color.green;
+                }
                 Gizmos.DrawCube(n.worldPos, Vector3.one * (nodeDiameter - 0.1f));
                 }
             }

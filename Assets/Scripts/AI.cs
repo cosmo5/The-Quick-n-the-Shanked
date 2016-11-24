@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-
+using System.Linq;
 public class AI : MonoBehaviour
 {
     public enum TypeOfAI
@@ -11,7 +11,8 @@ public class AI : MonoBehaviour
         targetInGang,
         normalGuard,
         towerGuard,
-        GuardDog
+        GuardDog,
+        Inmate
     };
     [Range(0, 100)]
     public float waterMeter;
@@ -48,6 +49,7 @@ public class AI : MonoBehaviour
     public Vector3 offset;
     public GameObject[] keyAreas;
 
+    public Water myTap;
     public bool pathFound;
     protected Vector3[] path;
     public int targetIndex;
@@ -56,7 +58,11 @@ public class AI : MonoBehaviour
     private List<Node> neightbourNodes = new List<Node>();
     protected bool stopMovement;
     private bool imMadGonKill;
-    private bool gettingWater;
+    public bool gettingWater;
+    bool doOnetime;
+    Water water;
+    private bool waterRequested = false;
+    protected bool waiting;
     protected virtual void Start()
     {
         waterMeter = UnityEngine.Random.Range(50, 100);
@@ -79,8 +85,13 @@ public class AI : MonoBehaviour
         player = gm.player;
         // decisionTimer = Random.Range(5, 8);
         cachTimer = decisionTimer;
+        water = FindObjectOfType<Water>();
+        startPos = transform.position;
     }
-
+    public bool GettingWater
+    {
+        get { return gettingWater; }
+    }
     void OnDisable()
     {
         GameManager.yardTimeOver -= OnYardTimeOver;
@@ -103,7 +114,7 @@ public class AI : MonoBehaviour
     }
     protected virtual void OnYardTimeOver()
     {
-        // Move to Respective Areas
+        // Move to cell Area
         print("BASE AI");
 
         movePos = GameObject.Find("Cells").transform.position;
@@ -113,6 +124,12 @@ public class AI : MonoBehaviour
     {
         path = null;
         pathFound = false;
+    }
+
+    public void GainWater(float amount)
+    {
+        waterMeter += amount;
+        waterMeter = Mathf.Clamp(waterMeter, 0, 100);
     }
     protected virtual void Update()
     {
@@ -131,7 +148,7 @@ public class AI : MonoBehaviour
             decisionTimer = cachTimer;
         }
 
-        if (Vector3.Distance(transform.position, movePos) < 1)
+        if (Vector3.Distance(transform.position, movePos) < 2)
         {
             if (gm.yardOver)
             {
@@ -145,10 +162,51 @@ public class AI : MonoBehaviour
             }
             if (gettingWater)
             {
-                waterMeter += 5;
-                if (waterMeter >= 95)
+                
+
+                if (!waterRequested)
                 {
+                    myTap.RequestWater(this);
+                    waterRequested = true;
+                }
+
+                
+                if (myTap.beingUsed)
+                {
+                   
+
+                    Vector3 dir =  myTap.transform.position - new Vector3(myTap.transform.position.x, myTap.transform.parent.transform.position.y, myTap.transform.parent.transform.position.z);
+                    waiting = true;
+
+                    movePos = myTap.transform.position + ( myTap._ai.IndexOf(this) * myTap.transform.forward * 0.5f);   //myTap.transform.position + (myTap.queueCount * myTap.transform.forward);
+                    if (transform.position == movePos)
+                    {
+                        stopMovement = true;
+                    }
+                    else
+                    {
+                        stopMovement = false;
+                    }
+                        
+                    if (DiceRoll(UnityEngine.Random.Range(0, 50)) && happy <= 30)
+                    {
+                        print("im shankin you");
+                    }
+                    if (myTap.curr1 == this)
+                    {
+                        movePos = myTap.transform.position;
+
+                    }
+
+                }
+                if (waterMeter >= 95f)
+                {
+                    Debug.Log("Running");
+                    movePos = startPos;
+                    moving = true;
                     gettingWater = false;
+                    myTap = null;
+                    waiting = false;
                 }
             }
         }
@@ -159,7 +217,16 @@ public class AI : MonoBehaviour
 
         }
     }
+    private void ChooseTap()
+    {
+        gm.waterTaps.Sort(delegate (Water a, Water b) {
+            return (a.GetComponent<Water>().queueCount).CompareTo(b.GetComponent<Water>().queueCount);
+        });
 
+        myTap = gm.waterTaps[0];
+      
+
+    }
     protected virtual void Think(int x, Vector3 randomDir, Quaternion startRot, bool _moving)
     {
 
@@ -167,18 +234,24 @@ public class AI : MonoBehaviour
         if (waterMeter <= 30)
         {
             //Get Water
-            if (DiceRoll())
+            if (DiceRoll(UnityEngine.Random.Range(0,6)))
             {
-                Debug.Log("Time To get Water");
-                movePos = GameObject.Find("Water").transform.position;
+                if (myTap == null)
+                     ChooseTap();
+
+                if(!waiting)
+                  movePos = myTap.transform.position;
+
                 moving = true;
                 gettingWater = true;
+                print("GettingWater");
             }
+            
 
-            if (DiceRoll() && foodMeter <= 50)
+            if (DiceRoll(UnityEngine.Random.Range(0, 15)) && foodMeter <= 30 && happy <= 30)
             {
                 //Kill Someone
-                Debug.Log("Moving To kill Player");
+ 
                 Inmate toKill = gm._inmates[UnityEngine.Random.Range(0, gm._inmates.Count)];
                 movePos = toKill.transform.position;
                 moving = true;
@@ -190,20 +263,19 @@ public class AI : MonoBehaviour
 
     }
 
-    public bool DiceRoll()
+    public bool DiceRoll(int rndNum)
     {
-        int randNum = UnityEngine.Random.Range(0, 6);
+       
         int x = rnd.Next(6);
-        if (x == randNum)
-        {
+        if (x == rndNum)
             return true;
-        }
-        return false;
+        else
+            return false;
     }
-    public void RequestPath(Vector3 currPos, Vector3 targetPos)
+    public void RequestPath(Vector3 currPos, Vector3 targetPos, bool canOverride)
     {
 
-        if (!pathFound)
+        if (!pathFound || canOverride)
         {
             PathRequestManager.RequestPath(currPos, targetPos, OnPathFound);
             targetIndex = 0;
@@ -215,6 +287,7 @@ public class AI : MonoBehaviour
         if (pathSuccessful)
         {
             path = newPath;
+            doOnetime = true;
             pathFound = true;
         }
     }
@@ -237,6 +310,21 @@ public class AI : MonoBehaviour
                 }
             }
         }
+        if (moving)
+        {
+            RaycastHit hitInfo;
+            for (int i = 0; i < 3; i++)
+            {
+                if (Physics.Raycast((transform.position - transform.right * 0.1f) + transform.right * (i * 0.15f), direction, out hitInfo, 0.5f, gm.inmateMask) && doOnetime)
+                {
+                    RequestPath(transform.position, movePos, true);
+                    doOnetime = false;
+                    break;
+                }
+                Debug.DrawRay((transform.position - transform.right * 0.1f) + transform.right *    ( i * 0.15f ), direction, Color.red);
+            }
+        }
+       
     }
     void OnDrawGizmos()
     {
@@ -295,9 +383,14 @@ public class AI : MonoBehaviour
             if (!stopMovement)
             {
                 Vector3 dir = currentWaypoint - transform.position;
+                
+                Look(dir, moving);
+               
                 GetComponent<Rigidbody>().velocity = dir.normalized * speed * Time.deltaTime;
                 Rotate(dir, false, transform.rotation);
                 ClampPos();
+                
+              
             }
         }
     }

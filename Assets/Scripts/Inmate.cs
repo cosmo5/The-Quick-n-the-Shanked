@@ -84,32 +84,27 @@ public class Inmate : AI {
    
     void FixedUpdate()
     {
-        Look(player.transform.position - transform.position, moving);
-        if (moving && !playerAttack)
+        if(!moving)
+         Look(player.transform.position - transform.position, moving);
+        if (moving && !playerAttack )
         {
             
-            RequestPath(transform.position, movePos);
+            RequestPath(transform.position, movePos, false);
         }
         if (guardToNarcTo != null)
         {
-            RequestPath(transform.position, guardToNarcTo.transform.position);
+            RequestPath(transform.position, guardToNarcTo.transform.position, true);
         }
     }
     // Update is called once per frame
    protected override void Update () {
 
         base.Update();
+  
+            Think(rndNumber, randomDir, _startRot, moving);
 
-        Think(rndNumber,randomDir , _startRot, moving);
-        if (movePos != Vector3.zero)
-        {
-            if (transform.position == movePos)
-            {
-                
-                moving = false;
-                movePos = Vector3.zero;
-            }
-        }
+        
+      
       
         
         
