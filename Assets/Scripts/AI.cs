@@ -148,7 +148,7 @@ public class AI : MonoBehaviour
             decisionTimer = cachTimer;
         }
 
-        if (Vector3.Distance(transform.position, movePos) < 2)
+        if (Vector3.Distance(transform.position, movePos) < 1)
         {
             if (gm.yardOver)
             {
@@ -173,15 +173,16 @@ public class AI : MonoBehaviour
                 
                 if (myTap.beingUsed)
                 {
-                   
+                  
 
                     Vector3 dir =  myTap.transform.position - new Vector3(myTap.transform.position.x, myTap.transform.parent.transform.position.y, myTap.transform.parent.transform.position.z);
                     waiting = true;
 
                     movePos = myTap.transform.position + ( myTap._ai.IndexOf(this) * myTap.transform.forward * 0.5f);   //myTap.transform.position + (myTap.queueCount * myTap.transform.forward);
-                    if (transform.position == movePos)
+                    if (myTap.curr1 == this)
                     {
-                        stopMovement = true;
+                        movePos = myTap.transform.position;
+
                     }
                     else
                     {
@@ -192,11 +193,7 @@ public class AI : MonoBehaviour
                     {
                         print("im shankin you");
                     }
-                    if (myTap.curr1 == this)
-                    {
-                        movePos = myTap.transform.position;
-
-                    }
+                   
 
                 }
                 if (waterMeter >= 95f)
