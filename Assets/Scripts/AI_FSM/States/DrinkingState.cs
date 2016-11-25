@@ -4,6 +4,11 @@ using System.Collections;
 public class DrinkingState : IState<Inmate_Entity>
 {
     static readonly DrinkingState instance = new DrinkingState();
+
+    public static DrinkingState Instance
+    {
+        get { return instance; }
+    }
     //Entering The State
     public void Enter(Inmate_Entity e)
     {

@@ -4,7 +4,7 @@ using System.Collections;
 public class MovingState : IState<Inmate_Entity>
 {
     static readonly MovingState instance = new MovingState();
-
+    
     public static MovingState Instance
     {
         get { return instance; }
@@ -18,7 +18,8 @@ public class MovingState : IState<Inmate_Entity>
     public void Run(Inmate_Entity e)
     {
         Debug.Log("Running Move State");
-
+        e.Move();
+        Debug.Log("Moving" + e);
     }
 
     public void Exit(Inmate_Entity e)

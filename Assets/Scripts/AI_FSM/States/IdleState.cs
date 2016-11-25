@@ -3,6 +3,9 @@ using System.Collections;
 
 public class IdleState : IState<Inmate_Entity>
 {
+    /// <summary>
+    /// The Inamte idle state, this is specific to the inmates.
+    /// </summary>
     static readonly IdleState instance = new IdleState();
     public static IdleState Instance
     {

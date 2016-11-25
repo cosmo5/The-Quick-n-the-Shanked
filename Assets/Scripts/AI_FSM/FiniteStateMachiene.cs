@@ -14,7 +14,19 @@ public class FiniteStateMachiene<T> {
         previousState = null;
         worldState = null;
 	}
-	
+	public void Update()
+    {
+
+        if (currentState != null)
+        {
+            currentState.Run(owner);
+        }
+        if (worldState != null)
+        {
+            worldState.Run(owner);
+        }
+    }
+  
 	public void Init(T _owner, IState<T> initalState)
     {
         owner = _owner;

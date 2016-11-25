@@ -12,18 +12,16 @@ public class Test : MonoBehaviour {
 	void Update () {
         if (Input.GetKeyDown(KeyCode.M))
         {
-           // GetComponent<Inmate_Entity>().Event = Events.Moving;
+            GetComponent<Inmate_Entity>().FSM.ChangeState(MovingState.Instance);
 
         }
         if (Input.GetKeyDown(KeyCode.N))
         {
-            //GetComponent<Inmate_Entity>().Event = Events.Eating;
-
+            GetComponent<Inmate_Entity>().FSM.ChangeState(DrinkingState.Instance);
         }
         if (Input.GetKeyDown(KeyCode.B))
         {
-            //GetComponent<Inmate_Entity>().Event = Events.Drinking;
-
+            GetComponent<Inmate_Entity>().FSM.ChangeState(IdleState.Instance);
         }
     }
 }
