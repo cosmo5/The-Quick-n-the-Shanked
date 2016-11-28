@@ -14,6 +14,12 @@ public class FiniteStateMachiene<T> {
         previousState = null;
         worldState = null;
 	}
+
+    public IState<T> CurrentState
+    {
+        get { return currentState; }
+    }
+   
 	public void Update()
     {
 

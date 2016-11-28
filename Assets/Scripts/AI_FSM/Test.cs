@@ -12,7 +12,7 @@ public class Test : MonoBehaviour {
 	void Update () {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            GetComponent<Inmate_Entity>().FSM.ChangeState(MovingState.Instance);
+            GetComponent<Inmate_Entity>().FSM.ChangeState(States.MovingState.Instance);
 
         }
         if (Input.GetKeyDown(KeyCode.N))

@@ -14,16 +14,16 @@ public class IdleState : IState<Inmate_Entity>
     //Entering The State
     public void Enter(Inmate_Entity e)
     {
-        Debug.Log("Entering Idle State");
+  //      Debug.Log("Entering Idle State");
     }
     //Exiting The State
     public void Run(Inmate_Entity e)
     {
-        Debug.Log("Running Idle State");
+//        Debug.Log("Running Idle State");
     }
 
     public void Exit(Inmate_Entity e)
     {
-        Debug.Log("Exiting Idle State");
+    //    Debug.Log("Exiting Idle State");
     }
 }
