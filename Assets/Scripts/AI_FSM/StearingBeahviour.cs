@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-
+using System.Linq;
 namespace Stearing
 {
     public class StearingBeahviour
@@ -94,17 +94,34 @@ namespace Stearing
 
         public Vector3 ObsticleAvoidance(Vehicle agent, Vector3 centre, Vector3 hExtends)
         {
-            Vector3 desiredVel = Vector3.zero;
-            Collider[] cols = Physics.OverlapBox(centre, hExtends,agent.transform.rotation);
-            if (cols.Length > 0)
-            {
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    desiredVel -= cols[i].ClosestPointOnBounds(agent.transform.position);
+            Vector3 steeringForce = Vector3.zero;
 
-                }
+            Vector3 desiredVel = Vector3.zero;
+            GameObject intersectingObj = null;
+            float dstToIP = 0;
+            Vector3 objectPosLocal = Vector3.zero;
+
+            List<Collider> cols = new List<Collider>();
+            cols.AddRange( Physics.OverlapBox(centre, hExtends,agent.transform.rotation));
+            cols.OrderBy(x => Vector3.Distance(x.transform.position, agent.transform.position));
+            if (cols[0] == agent.GetComponent<Collider>())
+            {
+                cols.RemoveAt(0);
             }
-            return Flee(agent, desiredVel);
+            if (cols.Count > 0 )
+            {
+                Debug.Log("Avoiding" + cols[0].name);
+                float multi =1.0f + (agent.GetComponent<Collider>().bounds.extents.z - cols[0].transform.position.x) / agent.GetComponent<Collider>().bounds.extents.z;
+                Vector3 ColLocal = agent.transform.InverseTransformPoint(cols[0].transform.position);
+                steeringForce.z = (cols[0].bounds.extents.z - ColLocal.z) * multi;
+
+                float breakWeight = 0.2f;
+
+                steeringForce.x = (cols[0].bounds.extents.x - ColLocal.x) * breakWeight;
+
+
+            }
+            return steeringForce;
         }
         public Vector3 Calc( Vehicle toAffect, Vehicle target, List<string> moves, Vector3 wanderTarg)
         {
@@ -113,7 +130,9 @@ namespace Stearing
             bool chaseTrue = false;
             bool evadeTrue = false;
             bool wanderTrue = false;
-            bool fleeTrue = false; 
+            bool fleeTrue = false;
+            bool obsticle = false;
+
             Vector3 _steeringForce =Vector3.zero;
             Vector3 force = Vector3.zero;
             foreach (string s in moves)
@@ -142,9 +161,12 @@ namespace Stearing
                 {
                     wanderTrue = true;
                 }
+                if (s == "OBST")
+                {
+                    obsticle = true;
+                }
             }
-            if(toAffect.test)
-                return ObsticleAvoidance(toAffect, toAffect.centre, toAffect.hExtends / 2);
+          
             if (seekTrue)
             {
                 force = Seek( toAffect, target.transform.position) * 1;
@@ -193,6 +215,15 @@ namespace Stearing
                 {
                     _steeringForce = force;
 
+                    return force;
+                }
+            }
+            if (obsticle && Random.Range(0.0f, 10) > wander)
+            {
+                force = ObsticleAvoidance(toAffect, toAffect.centre, toAffect.hExtends) * 15 / wander;
+                if (!AccumulateForce(toAffect, _steeringForce, force))
+                {
+                    _steeringForce = force;
                     return force;
                 }
             }

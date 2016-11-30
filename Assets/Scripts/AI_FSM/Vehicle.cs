@@ -15,6 +15,7 @@ public class Vehicle : MovingEntity {
     public Vehicle targetVehicle;
     public GameObject wanderTarget;
     public float coef;
+  
     public GameObject Vpos;
     public Vector3 centre;
     public Vector3 hExtends;
@@ -23,6 +24,9 @@ public class Vehicle : MovingEntity {
     public float wanderDst;
     public float minBoxLength;
     public bool test;
+
+    public Vector3 localForward;
+    public Vector3 localSide;
     public virtual void Start()
     {
          desiredVel = Vector3.zero;
@@ -36,6 +40,8 @@ public class Vehicle : MovingEntity {
     
     public virtual void Update()
     {
+        localForward = transform.forward;
+        localSide = transform.right;
         desiredVel = Vector3.zero;
 
         nextMoves.Clear();
@@ -47,6 +53,7 @@ public class Vehicle : MovingEntity {
         else
         {
             nextMoves.Add("Wander");
+            nextMoves.Add("OBST");
 
             if (Vector3.Distance(transform.position, targetVehicle.transform.position) < 2)
             {
@@ -76,7 +83,7 @@ public class Vehicle : MovingEntity {
     void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
-       // Gizmos.DrawWireCube(centre, hExtends);
+       // Gizmos.DrawCube(centre, hExtends);
     }
     private void UpdateFacingDir(Vector3 heading)
     {
@@ -106,7 +113,9 @@ public class Vehicle : MovingEntity {
 
         desiredVel = sB.Calc(this, targetVehicle, nextMoves, wanderTarget.transform.position);
         desiredVel.y = 0;
-//        Vpos.transform.position = desiredVel;
+
+
+        //        Vpos.transform.position = desiredVel;
         //calculate acceleration 
         Vector3 acc = desiredVel / mass;
 
@@ -114,6 +123,7 @@ public class Vehicle : MovingEntity {
 
         velocity += acc;
         rigi.velocity = velocity;
+       // Debug.DrawLine(transform.position, velocity * 2 + transform.position, Color.blue);
 
         //Clamp Velocity
         ClampVel();
