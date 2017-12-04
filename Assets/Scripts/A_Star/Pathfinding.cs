@@ -44,13 +44,11 @@ public class Pathfinding : MonoBehaviour {
                 {
                     sw.Stop();
                     pathSuccess = true;
-                
                     break;
                 }
 
                 foreach (Node neighbour in grid.GetNeighbours(currentNode))
                 {
-                    
                     if (Physics.CheckSphere(neighbour.worldPos, grid.nodeRadius * gm.nodeRadiusMultiplyer, gm.inmateMask) && !gm.yardOver)
                     { 
                         neighbour.movementPenalty = 50;
@@ -90,8 +88,6 @@ public class Pathfinding : MonoBehaviour {
                         if (!openSet.Contains(neighbour))
                         {
                             openSet.Add(neighbour);
-                            
-                            
                         }
                         else
                         {

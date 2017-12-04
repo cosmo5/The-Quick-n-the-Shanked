@@ -133,11 +133,6 @@ public class Vehicle : MovingEntity {
         vehicleHeading = rigi.velocity.normalized;
         UpdateFacingDir(vehicleHeading);
 
-
-
-
-
-
         Debug.DrawLine(transform.position,   vehicleHeading *2 +transform.position , Color.red);
 
 

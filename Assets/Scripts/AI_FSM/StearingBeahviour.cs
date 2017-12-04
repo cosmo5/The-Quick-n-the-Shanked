@@ -11,12 +11,13 @@ namespace Stearing
         const float evade = 0.5f;
         const float flee = 0.5f;
         const float wander = 0.6f ;
-        
-        public Vector3 Seek( Vehicle toAffect, Vector3 targetPosition)
+
+        public Vector3 Seek(Vehicle toAffect, Vector3 targetPosition)
         {
-            Vector3 desiredVelocity = Vector3.Normalize(targetPosition - toAffect.transform.position) * toAffect.maxSpeed   ;
+            Vector3 desiredVelocity = Vector3.Normalize(targetPosition - toAffect.transform.position) * toAffect.maxSpeed;
             return desiredVelocity;
         }
+
 
         public Vector3 Flee(Vehicle toAffect, Vector3 targetPosition)
         {
@@ -26,17 +27,7 @@ namespace Stearing
             return desiredVelocity;
         }
 
-        public Vector3 Arrive( float time, Vector3 targetPos, Vehicle toAffect)
-        {
-            // s = d/t
-
-             float dist = (targetPos - toAffect.transform.position).magnitude;
-
-            float speed = dist / time;
-            
-            Vector3 desiredVelocity = Vector3.Normalize(targetPos - toAffect.transform.position) * speed;
-            return desiredVelocity;
-        }
+     
         void OnDrawGizmos()
         {
             
